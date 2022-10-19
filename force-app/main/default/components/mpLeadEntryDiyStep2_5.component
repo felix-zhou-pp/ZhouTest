@@ -1,0 +1,309 @@
+<apex:component allowDML="true" id="main" layout="block">
+<apex:attribute name="mp" description="mpLeadFormDiy" type="mpLeadFormDiy" required="true"/>
+<apex:attribute name="outputData" description="mpOpportunity__c" type="mpOpportunity__c" required="true"/>
+<apex:attribute name="inputData" description="mpOpportunity__c" type="mpOpportunity__c" required="true"/>
+<apex:attribute name="input" description="mpFormInputClass" type="mpFormInputClass" required="true"/>
+
+<script type="text/javascript">
+$(function() {
+    $.fn.autoKana('input[id$=":InputCity"]', 'input[id$=":InputCityKana"]', {
+        katakana : true
+    });
+    $.fn.autoKana('input[id$=":InputTownName"]', 'input[id$=":InputTownNameKana"]', {
+        katakana : true
+    });
+    $.fn.autoKana('input[id$=":InputBuildingNumber"]', 'input[id$=":InputFormBuildingNumber"]', {
+        katakana : true
+    });
+
+    $('input[id$=":InputPostalCode"]')
+        .data('prevalue', $('input[id$=":InputPostalCode"]').val())
+        .bind("keyup", function(e){
+        if ($(this).data('prevalue') != $(this).val()) {
+            $(this).data('prevalue', $(this).val());
+            return true;
+        }
+        e.stopImmediatePropagation();
+        return false;
+    });
+    $.fn.jpostal({
+        postcode : [
+            'input[id$=":InputPostalCode"]'
+        ],
+        address : {
+              'select[id$=":InputPrefectures"]'  : '%3', //都道府県
+              'input[id$=":InputCity"]'  : '%4', //市区町村
+              'input[id$=":InputTownName"]'  : '%5', //町域
+              'input[id$=":InputCityKana'  : '%ASKV9', //市区町村カナ
+              'input[id$=":InputTownNameKana"]'  : '%ASKV10', //町域カナ
+              'input[id$=":InputFormSectionStreetNumber"]'  : '%6' //大口事業所の番地
+        }
+    });
+});
+</script>
+
+  <h1 class="c-ttl-page u-mt-0 u-text-center" style="{! IF(outputData.CorporateForm__c == '個人事業主', '', 'display:none;')}">代表者様の住所を入力してください</h1>
+  <h1 class="c-ttl-page u-mt-0 u-text-center" style="{! IF(outputData.CorporateForm__c == '法人', '', 'display:none;')}">事業者情報を入力してください</h1>
+  <p class="c-ttl-article u-text-center"></p>
+
+  <apex:form id="form1">
+      <apex:outputText rendered="{!outputData.CorporateForm__c == '個人事業主'}">
+        <div class="u-mb-25">
+          <div class="c-box has-icon green">
+            <div class="c-box__inner">
+                <h4 class="c-box__iconttl"><span>個人事業主の方は、代表者様の住所をご登録いただく必要がございます。<br/>本人確認書類に記載されている住所と相違ないことをご確認ください。</span></h4>
+            </div>
+          </div>
+        </div>
+      </apex:outputText>
+      <apex:outputText rendered="{!outputData.CorporateForm__c == '法人'}">
+
+        <apex:outputText rendered="{! !mp.IsHoujinApiMaintenance}"> 
+          <div class="c-button__wrapper">
+            <div class="c-col-12">
+              <apex:commandLink action="{!mp.searchCorp}" value="法人名から法人情報を検索する" styleClass="c-button c-button--border"
+                  onclick="slideNext();" reRender="body" immediate="true" style="border-width:3px;"/>
+            </div>
+          </div>
+        </apex:outputText>
+        <div class="u-mt-25 u-mb-25">
+            <hr />
+        </div>
+
+      <div class="c-form__wrapper">
+        <div class="c-form__ttl">
+          <h3 class="c-ttl-section">法人名</h3>
+          <div class="c-label red">必須</div>
+        </div>
+        <div class="c-form__input {!IF(input.data['Name'].hasError, 'error', '')}">
+            <apex:inputText value="{! input.data['Name'].val}" styleclass="c-form" id="InputCorpName" html-placeholder="入力例：PayPay株式会社"
+                            maxlength="{! input.data['Name'].length}"
+                            required="True"/>
+        </div>
+        <p class="u-text-size-s u-text-sub">略さずに入力してください</p>
+        <apex:outputText rendered="{!input.data['Name'].hasError}">
+          <p class="u-text-size-s u-text-error u-mb-5">{!input.data['Name'].error}</p>
+        </apex:outputText>
+      </div>
+
+      <div class="c-form__wrapper">
+        <div class="c-form__ttl">
+          <h3 class="c-ttl-section">法人名（フリガナ）</h3>
+          <div class="c-label red">必須</div>
+        </div>
+        <div class="c-form__input {!IF(input.data['NameKana__c'].hasError, 'error', '')}">
+            <apex:inputText value="{! input.data['NameKana__c'].val}" styleclass="c-form katakana" id="InputKanaCorpName"
+                            maxlength="{! input.data['NameKana__c'].length}"
+                            html-placeholder="入力例：ペイペイカブシキガイシャ" required="True"/>
+        </div>
+        <apex:outputText rendered="{!input.data['NameKana__c'].hasError}">
+          <p class="u-text-size-s u-text-error u-mb-5">{!input.data['NameKana__c'].error}</p>
+        </apex:outputText>
+      </div>
+
+      <div class="c-form__wrapper">
+        <div class="c-form__ttl">
+          <h3 class="c-ttl-section">法人番号</h3>
+          <div class="c-label red">必須</div>
+        </div>
+        <div class="c-form__input {!IF(input.data['CorporateNumber__c'].hasError, 'error', '')}">
+            <apex:inputText value="{! input.data['CorporateNumber__c'].val}" styleclass="c-form hankakunum" id="CorporateNumber"
+                            maxlength="{! input.data['CorporateNumber__c'].length}"
+                            html-placeholder="13桁の法人番号を入力してください" required="True"/>
+        </div>
+        <p class="u-text-size-s u-text-sub">法人番号は、会社法人等番号「12桁」の前に チェックデジット「1桁」を付した「数字13桁」の番号です。</p>
+        <p class="u-text-size-s u-text-sub">詳しくは<a class="u-text-link blank" href="https://www.houjin-bangou.nta.go.jp/#appForm" target="_blank">国税庁法人番号公表サイト</a>からご確認ください。</p>
+        <apex:outputText rendered="{!input.data['CorporateNumber__c'].hasError}">
+          <p class="u-text-size-s u-text-error u-mb-5">{!input.data['CorporateNumber__c'].error}</p>
+        </apex:outputText>
+      </div>
+      </apex:outputText>
+
+        <div class="u-mt-45 u-mb-45">
+            <hr />
+        </div>
+
+      <div class="c-form__wrapper">
+        <div class="c-form__ttl">
+          <h3 class="c-ttl-section">郵便番号</h3>
+          <div class="c-label red">必須</div>
+        </div>
+        <div class="c-form__input {!IF(input.data['PostalCode__c'].hasError, 'error', '')}">
+            <apex:inputText value="{! input.data['PostalCode__c'].val}" styleclass="c-form hankakunum" id="InputPostalCode"
+                            maxlength="{! input.data['PostalCode__c'].length}"
+                            html-placeholder="入力例：1020094" required="True"/>
+        </div>
+        <apex:outputText rendered="{!input.data['PostalCode__c'].hasError}">
+          <p class="u-text-size-s u-text-error u-mb-5">{!input.data['PostalCode__c'].error}</p>
+        </apex:outputText>
+      </div>
+
+      <div class="c-form__wrapper">
+        <div class="c-form__ttl">
+          <h3 class="c-ttl-section">都道府県</h3>
+          <div class="c-label red">必須</div>
+        </div>
+        <div class="c-form__input">
+            <div class="c-form__select">
+                <apex:inputField value="{! inputData.Prefectures__c}"  id="InputPrefectures" required="True"/>
+            </div>
+        </div>
+      </div>
+
+      <div class="c-row">
+        <div class="c-col-6">
+          <div class="c-form__wrapper">
+            <div class="c-form__ttl">
+              <h3 class="c-ttl-section">市区町村</h3>
+              <div class="c-label red">必須</div>
+            </div>
+            <div class="c-form__input {!IF(input.data['City__c'].hasError, 'error', '')}">
+                <apex:inputText value="{! input.data['City__c'].val}" styleclass="c-form" id="InputCity" html-placeholder="入力例：千代田区"
+                                maxlength="{! input.data['City__c'].length}"
+                                required="True"/>
+            </div>
+            <apex:outputText rendered="{!input.data['City__c'].hasError}">
+              <p class="u-text-size-s u-text-error u-mb-5">{!input.data['City__c'].error}</p>
+            </apex:outputText>
+          </div>
+        </div>
+        <div class="c-col-6">
+          <div class="c-form__wrapper">
+            <div class="c-form__ttl">
+              <h3 class="c-ttl-section">市区町村（フリガナ）</h3>
+              <div class="c-label red">必須</div>
+            </div>
+            <div class="c-form__input {!IF(input.data['CityKana__c'].hasError, 'error', '')}">
+                <apex:inputText value="{! input.data['CityKana__c'].val}" styleclass="c-form katakana" id="InputCityKana" html-placeholder="入力例：チヨダク"
+                                maxlength="{! input.data['CityKana__c'].length}"
+                                required="True"/>
+            </div>
+            <apex:outputText rendered="{!input.data['CityKana__c'].hasError}">
+              <p class="u-text-size-s u-text-error u-mb-5">{!input.data['CityKana__c'].error}</p>
+            </apex:outputText>
+          </div>
+        </div>
+      </div>
+
+      <div class="c-row">
+        <div class="c-col-6">
+          <div class="c-form__wrapper">
+            <div class="c-form__ttl">
+              <h3 class="c-ttl-section">町名</h3>
+              <div class="c-label red">必須</div>
+            </div>
+            <div class="c-form__input {!IF(input.data['TownName__c'].hasError, 'error', '')}">
+                <apex:inputText value="{! input.data['TownName__c'].val}" styleclass="c-form" id="InputTownName" html-placeholder="入力例：紀尾井町"
+                                maxlength="{! input.data['TownName__c'].length}"
+                                required="True"/>
+            </div>
+            <apex:outputText rendered="{!input.data['TownName__c'].hasError}">
+              <p class="u-text-size-s u-text-error u-mb-5">{!input.data['TownName__c'].error}</p>
+            </apex:outputText>
+          </div>
+        </div>
+        <div class="c-col-6">
+          <div class="c-form__wrapper">
+            <div class="c-form__ttl">
+              <h3 class="c-ttl-section">町名（フリガナ）</h3>
+              <div class="c-label red">必須</div>
+            </div>
+            <div class="c-form__input {!IF(input.data['TownNameKana__c'].hasError, 'error', '')}">
+                <apex:inputText value="{! input.data['TownNameKana__c'].val}" styleclass="c-form katakana" id="InputTownNameKana" 
+                                maxlength="{! input.data['TownNameKana__c'].length}"
+                                html-placeholder="入力例：キオイチョウ" required="True"/>
+            </div>
+            <apex:outputText rendered="{!input.data['TownNameKana__c'].hasError}">
+              <p class="u-text-size-s u-text-error u-mb-5">{!input.data['TownNameKana__c'].error}</p>
+            </apex:outputText>
+          </div>
+        </div>
+      </div>
+
+      <div class="c-form__wrapper">
+        <div class="c-form__ttl">
+          <h3 class="c-ttl-section">番地</h3>
+          <div class="c-label red">必須</div>
+        </div>
+        <div class="c-form__input {!IF(input.data['FormSectionStreetNumber__c'].hasError, 'error', '')}">
+            <apex:inputText value="{! input.data['FormSectionStreetNumber__c'].val}" styleclass="c-form" id="InputFormSectionStreetNumber"
+                            maxlength="{! input.data['FormSectionStreetNumber__c'].length}"
+                            html-placeholder="入力例：１-２-３" required="True"/>
+        </div>
+        <p class="u-text-size-s u-text-sub">入力例)１-２-３ </p>  
+        <apex:outputText rendered="{!input.data['FormSectionStreetNumber__c'].hasError}">
+          <p class="u-text-size-s u-text-error u-mb-5">{!input.data['FormSectionStreetNumber__c'].error}</p>
+        </apex:outputText>
+      </div>
+      
+	    <apex:outputText rendered="{!outputData.CorporateForm__c == '個人事業主'}">
+        <div class="u-mb-25">
+          <div class="c-box has-icon green">
+            <div class="c-box__inner">
+                <h4 class="c-box__iconttl"><span>アパート名や部屋番号などが本人確認書類の住所欄に記載されている場合は必ず入力ください。</span></h4>
+            </div>
+          </div>
+        </div>
+      </apex:outputText>
+      
+      <div class="c-form__wrapper">
+        <div class="c-form__ttl">
+          <h3 class="c-ttl-section">アパート、マンション名、部屋番号など</h3>
+  		</div>     
+        <div class="c-form__input {!IF(input.data['BuildingNumber__c'].hasError, 'error', '')}">
+            <apex:inputText value="{! input.data['BuildingNumber__c'].val}" styleclass="c-form" id="InputBuildingNumber"
+                            maxlength="{! input.data['BuildingNumber__c'].length}"
+                            html-placeholder="入力例：東京ガーデンテラス紀尾井町" />            
+        </div>
+        <apex:outputText rendered="{!input.data['BuildingNumber__c'].hasError}">
+          <p class="u-text-size-s u-text-error u-mb-5">{!input.data['BuildingNumber__c'].error}</p>
+        </apex:outputText>
+      </div>
+
+      <div class="c-form__wrapper">
+        <div class="c-form__ttl">
+          <h3 class="c-ttl-section">アパート、マンション名、部屋番号など（フリガナ）</h3>
+          
+        </div>
+      <div class="c-form__input {!IF(input.data['FormBuildingNumber__c'].hasError, 'error', '')}">
+            <apex:inputText value="{! input.data['FormBuildingNumber__c'].val}" styleclass="c-form katakana" id="InputFormBuildingNumber"
+                            maxlength="{! input.data['FormBuildingNumber__c'].length}"
+                            html-placeholder="入力例：トウキョウガーデンテラスキオイチョウ" />
+        </div>
+          
+        <apex:outputText rendered="{!input.data['FormBuildingNumber__c'].hasError}">
+          <p class="u-text-size-s u-text-error u-mb-5">{!input.data['FormBuildingNumber__c'].error}</p>
+        </apex:outputText>
+      </div>
+
+      <div class="c-form__wrapper">
+        <div class="c-form__ttl">
+          <h3 class="c-ttl-section">代表電話番号</h3>
+          <div class="c-label red">必須</div>
+        </div>
+        <div class="c-form__input {!IF(input.data['Phone__c'].hasError, 'error', '')}">
+            <apex:inputText value="{! input.data['Phone__c'].val}" styleclass="c-form hankakunum" id="InputCorpPhone"
+                            maxlength="14"
+                            html-placeholder="入力例：09012345678" required="True"/>
+        </div>
+        <apex:outputText rendered="{!input.data['Phone__c'].hasError}">
+          <p class="u-text-size-s u-text-error u-mb-5">{!input.data['Phone__c'].error}</p>
+        </apex:outputText>
+      </div>
+
+        <div class="u-mt-45 u-mb-45">
+            <hr />
+        </div>
+        
+          <div class="c-button__wrapper">
+            <div class="c-row">
+                <div class="c-col-3">
+                  <apex:commandLink action="{!mp.back}" value="戻る" styleClass="c-button c-button--border"  onclick="slideBack();" reRender="body,navi" immediate="true" />
+                </div>
+                <div class="c-col-9">
+                  <apex:commandButton action="{!mp.next}" value="保存して次へ" styleClass="c-button" onclick="if(!slideNext(this)){return};" reRender="body"/>
+                </div>
+            </div>
+          </div>
+  </apex:form>
+</apex:component>

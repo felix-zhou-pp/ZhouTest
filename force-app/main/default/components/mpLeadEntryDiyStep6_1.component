@@ -1,0 +1,678 @@
+<apex:component allowDML="true" id="main" layout="block">
+    <apex:attribute name="mp" description="mpLeadFormDiy" type="mpLeadFormDiy" required="true"/>
+    <apex:attribute name="outputData" description="mpOpportunity__c" type="mpOpportunity__c" required="true"/>
+    <script>
+    
+    var submited = false;
+    $(function(){
+        $('.js-modal').on('click', function(ev){
+            ev.preventDefault();
+            var target = $(this).data('target');
+            $modal = $('#' + target);
+            if (target == 'modal-store') {
+                $modal.find('#targetShopName').text('店舗名：'+$(this).data('target-name'));
+                if ($modal.find('[type="hidden"][id$=":uploadTargetId"]').val() != $(this).data('target-Id')) {
+                    $modal.find('[type="file"]').each(function(){
+                        $(this).val('');
+                        $(this).closest('.fileWrap').find('.select-file-name').text('').hide();
+                    })
+                }
+                $modal.find('[type="hidden"][id$=":uploadTargetId"]').val($(this).data('target-Id'));
+                if ($(this).data('status-out') == '1') {
+                    $modal.find('[type="file"][id$=":file1"]').addClass('uploaded');
+                }
+                if ($(this).data('status-in') == '1') {
+                    $modal.find('[type="file"][id$=":file2"]').addClass('uploaded');
+                }
+            } else if (target == 'modal-license') {
+                if ($(this).data('status-1') == '1') {
+                    $modal.find('[type="file"][id$=":license1"]').addClass('uploaded');
+                }
+                if ($(this).data('status-2') == '1') {
+                    $modal.find('[type="file"][id$=":license2"]').addClass('uploaded');
+                }
+                if ($(this).data('status-3') == '1') {
+                    $modal.find('[type="file"][id$=":license3"]').addClass('uploaded');
+                }
+            }
+            
+            window.scroll(0,$("#slideArea").offset().top);
+            var $inner = $modal.find('.c-modal-inner');
+            $modal.fadeIn();
+            var h = $inner[0].scrollHeight+5;
+            $inner.css('height', h+'px');
+        });
+        
+        $('.c-modal-close,.js-modal-close').on('click', function(ev){
+            ev.preventDefault();
+            if (submited) {
+                return false;
+            }
+            $(this).parents('.c-modal').fadeOut();
+        });
+    });
+    
+    $(function(){
+        $('.js-modal-before-open').on('click', function(ev){
+            ev.preventDefault();
+            var target = $(this).data('target');
+            $modal = $('#' + target);
+            if (target == 'modal-store-before-open') {
+                $modal.find('#beforeOpenTargetShopName').text('開店予定の店舗の写真・資料：'+$(this).data('target-name'));
+                if ($modal.find('[type="hidden"][id$=":beforeOpenUploadTargetId"]').val() != $(this).data('target-Id')) {
+                    $modal.find('[type="file"]').each(function(){
+                        $(this).val('');
+                        $(this).closest('.fileWrap').find('.select-file-name').text('').hide();
+                    })
+                }
+                $modal.find('[type="hidden"][id$=":beforeOpenUploadTargetId"]').val($(this).data('target-Id'));
+                if ($(this).data('before-open1') == '1') {
+                    $modal.find('[type="file"][id$=":beforeOpenFile1"]').addClass('uploaded');
+                }
+                if ($(this).data('before-open2') == '1') {
+                    $modal.find('[type="file"][id$=":beforeOpenFile2"]').addClass('uploaded');
+                }
+                if ($(this).data('before-open3') == '1') {
+                    $modal.find('[type="file"][id$=":beforeOpenFile3"]').addClass('uploaded');
+                }
+                if ($(this).data('before-open4') == '1') {
+                    $modal.find('[type="file"][id$=":beforeOpenFile4"]').addClass('uploaded');
+                }
+            }
+            
+            window.scroll(0,$("#slideArea").offset().top);
+            var $inner = $modal.find('.c-modal-inner');
+            $modal.fadeIn();
+            var h = $inner[0].scrollHeight+5;
+            $inner.css('height', h+'px');
+        });
+        
+        $('.c-modal-close,.js-modal-close').on('click', function(ev){
+            ev.preventDefault();
+            if (submited) {
+                return false;
+            }
+            $(this).parents('.c-modal').fadeOut();
+        });
+    });
+    
+    
+    function selectFile(file) {
+        var filename = $(file).closest('.fileWrap').find('.select-file-name');
+        filename.text('').hide();
+        if (checkFile(file)) {
+            $(file).val('');
+            return;
+        }
+        if($(file)[0].value.length > 0){
+            filename.text('選択ファイル：'+$(file)[0].files[0].name).show();
+        }
+    }
+    function checkFile(f, skipRequired) {
+        var hasError = false;
+        var notSelect = true;
+        $(f).each(function(inpt){
+            var input = $(this)[0];
+            var error = $(this).closest('.fileWrap').find('.u-text-error');
+            error.text("");
+            if(input.value.length > 0) {
+                notSelect = false;
+                //file size check 4194304
+                Array.prototype.forEach.call(input.files, function(file){
+                    if(file.size > 4194304) {
+                        error.text("サイズが4MB以上のファイルは送信できません。");
+                        hasError = true;
+                    } else if (file.size == 0) {
+                        error.text("サイズが0バイトのファイルは送信できません。");
+                        hasError = true;
+                    }
+                });
+                if (hasError) {
+                    input.value = '';
+                }
+            } else if (!skipRequired && !$(this).hasClass('uploaded')) {
+                error.text("選択してください。");
+                hasError = true;
+            }
+        });
+        if (notSelect) {
+            hasError = true;
+        }
+        return hasError;
+    }
+    function checkFileStore(btn) {
+        if(btn.classList.contains('disabled')){
+            return true;
+        }
+        var hasError = false;
+        var f = $(btn).closest("form").find("input[type=file]");
+        hasError = checkFile(f, true);
+        if (!hasError) {
+            btn.classList.add('disabled');
+            submited = true;
+        }
+        return hasError;
+    }
+    function checkFileLicense(btn) {
+        if(btn.classList.contains('disabled')){
+            return true;
+        }
+        var hasError = false;
+        var f = $(btn).closest("form").find("input[type=file]");
+        hasError = checkFile(f, true);
+        if (!hasError) {
+            btn.classList.add('disabled');
+            submited = true;
+        }
+        return hasError;
+    }
+    </script>
+    <style>
+        .c-button{
+        white-space:break-spaces;
+        }
+        .c-modal{
+        width:100vw;
+        height:101%;
+        padding:0;
+        margin-top:0;
+        margin-left:calc(-1*100vw/2 + 50%);
+        }
+        .c-modal-inner {
+        width:96%;
+        max-height:96%;
+        max-width:700px;
+        top:2%;
+        left:2%;
+        margin:0 auto;
+        border:1px solid #aaa;
+        border-radius:5px;
+        padding-top:30px;
+        }
+    </style>
+    <h1 class="c-ttl-page u-mt-10 u-mb-10 u-text-center">{!IF(mp.isNeedLicenseUpload, '許認可証と', '')}店舗写真のアップロード</h1>
+    <!--open後-->
+    <apex:outputText rendered="{! !mp.beforeOpenStoreCheck}">
+        
+        <div class="u-mb-20">
+            <div class="c-box has-icon box yellow">
+                <div class="c-box__inner">
+                    <ul>
+                        <li style="list-style:disc" class="u-mb-5">店舗外観内観写真のご提出について<br/><br/>
+                            
+                            店舗外観写真、内観写真をご提出いただくことによって、<br/>
+                            店舗の実在性並びに営業実態を確認することを目的としております。<br/>
+                            業種、取り扱う商品・サービスに関し、ご申請いただいた内容と照らし合わせて確認させていただくことになりますので、撮影の際は以下をご参照ください。<br/><br/>
+                            
+                            店舗外観写真例<a class="u-text-link blank" href="https://paypay.ne.jp/store/introduction/paypay-outside/" target="_blank">（https://paypay.ne.jp/store/introduction/paypay-outside/）</a><br/>
+                            店舗内観写真例<a class="u-text-link blank" href="https://paypay.ne.jp/store/introduction/paypay-inside/" target="_blank">（https://paypay.ne.jp/store/introduction/paypay-inside/）</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="u-mt-25 u-mb-25">
+            <hr />
+        </div>
+    </apex:outputText>
+    <apex:outputText rendered="{!mp.isNeedLicenseUpload}">
+        <p class="c-ttl-article">許認可証をアップロードしてください</p>
+        <div class="c-row">
+            <div class="c-col-5 c-col-md-12 u-mb-10">
+                <apex:outputText rendered="{!mp.isLicenceUploadFinish}">
+                    <apex:outputText rendered="{!mp.license1 != null}">
+                        <apex:image url="{!URLFOR($Resource.mpLeadDiyAssets, '/assets/img/common/icon/ico_check_gr.svg')}" alt="" styleClass="u-mr-5" />
+                        許認可証1：登録済み<br />
+                    </apex:outputText>
+                    <apex:outputText rendered="{!mp.license2 != null}">
+                        <apex:image url="{!URLFOR($Resource.mpLeadDiyAssets, '/assets/img/common/icon/ico_check_gr.svg')}" alt="" styleClass="u-mr-5" />
+                        許認可証2：登録済み<br />
+                    </apex:outputText>
+                    <apex:outputText rendered="{!mp.license3 != null}">
+                        <apex:image url="{!URLFOR($Resource.mpLeadDiyAssets, '/assets/img/common/icon/ico_check_gr.svg')}" alt="" styleClass="u-mr-5" />
+                        許認可証3：登録済み<br />
+                    </apex:outputText>
+                </apex:outputText>
+                <apex:outputText rendered="{!NOT(mp.isLicenceUploadFinish)}">
+                    <div style="text-align:center;">
+                        許認可証：<span style="color:#F00;">未登録</span><br />
+                    </div>
+                </apex:outputText>
+                <span style="font-size:80%;">（最大３ファイルまで登録可能）</span>
+            </div>
+            <div class="c-col-7 c-col-md-12">
+                <div class="c-button__wrapper u-mt-0 u-mb-0">
+                    <input type="button" class="c-button js-modal {!IF(mp.isLicenceUploadFinish, 'c-button--border', '')}"
+                           data-status-1="{!IF(mp.license1 != null, '1', '0')}"
+                           data-status-2="{!IF(mp.license2 != null, '1', '0')}"
+                           data-status-3="{!IF(mp.license3 != null, '1', '0')}"
+                           data-target="modal-license" value="許認可証をアップロードする" />
+                </div>
+            </div>
+        </div>
+        <div class="u-mt-25 u-mb-25">
+            <hr />
+        </div>
+    </apex:outputText>
+    <apex:outputText rendered="{! !mp.beforeOpenStoreCheck}">
+        <p class="c-ttl-article">店舗の写真をアップロードしてください</p>
+        <div class="c-box has-icon green u-mb-35">
+            <div class="c-box__inner">
+                <ul>
+                    <li style="list-style:disc" class="u-mb-5">1枚目は店舗名記載の看板を含む「店舗外観」、2枚目はサービス内容が伝わる構図で「店内」を撮影しアップロードしてください。</li>
+                    <li style="list-style:disc" class="u-mb-5">地面に対して水平、横長に写るように撮影を行ってください。</li>
+                    <li style="list-style:disc" class="u-mb-5">人物やお客様を特定できる情報が写り込まないようにしてください。</li>
+                    <li style="list-style:disc" class="u-mb-5">他人の著作権や商標権、パブリシティ等の知的財産もしくは肖像権を侵害するものが写り込まないようにしてください。</li>
+                    <li style="list-style:disc" class="u-mb-5">写真は鮮明なものをアップロードしてください。写真を過度に編集したり色をつけたりしないでください。（白黒写真不可）</li>
+                    <li style="list-style:disc" class="u-mb-5">上下逆にならないよう、正しい向きにてアップロードしてください。</li>
+                    <li style="list-style:disc" class="u-mb-5">画像ファイルはjpg、gif、png形式のいずれか、4MB以下のサイズ（1MB以下推奨）でご用意ください。</li>
+                    <li style="list-style:disc" class="u-mb-5">登録済みの写真を再度アップロードした場合、最後にアップロードしたものが有効になります。</li>
+                    <apex:outputText rendered="{!mp.code =='paypayagency'}">
+                        <li style="list-style:disc" class="u-mb-5">店舗写真を撮影する場合は「写真またはビデオを撮る」を選択しその場で撮影を行ってください。</li>
+                    </apex:outputText>
+                </ul>
+            </div>
+        </div>
+        
+        <apex:repeat value="{!mp.shopDetailListUploaded}" var="ShopDetail">
+            <div class="c-box has-icon blue u-mb-30" style="border-color:#aaa;background:#FFF;">
+                <div class="c-form__input confirm">
+                    <p class="u-text-size-s u-text-sub">店舗名</p>
+                    <p>{!ShopDetail.shop.Name}</p>
+                </div>
+                <div class="c-form__input confirm">
+                    <p style="margin-bottom:0;border-bottom:none;">〒{!ShopDetail.shop.PostalCode}</p>
+                    <p>{!ShopDetail.shop.Prefectures}&nbsp;{!ShopDetail.shop.City}&nbsp;{!ShopDetail.shop.Town}&nbsp;{!ShopDetail.shop.Street}&nbsp;{!ShopDetail.shop.Building}</p>
+                </div>
+                <div class="c-row">
+                    <div class="c-col-5 c-col-md-12 u-mt-5 u-mb-10">
+                        <apex:outputText rendered="{!ShopDetail.isStoreOutUploaded}">
+                            <apex:image url="{!URLFOR($Resource.mpLeadDiyAssets, '/assets/img/common/icon/ico_check_gr.svg')}" alt="" styleClass="u-mr-5" />
+                            店舗外観写真：登録済み<br />
+                        </apex:outputText>
+                        <apex:outputText rendered="{! !ShopDetail.isStoreOutUploaded}">
+                            店舗外観写真：<span style="color:#F00;">未登録</span><br />
+                        </apex:outputText>
+                        <apex:outputText rendered="{!ShopDetail.isStoreInUploaded}">
+                            <apex:image url="{!URLFOR($Resource.mpLeadDiyAssets, '/assets/img/common/icon/ico_check_gr.svg')}" alt="" styleClass="u-mr-5" />
+                            店内写真：登録済み<br />
+                        </apex:outputText>
+                        <apex:outputText rendered="{! !ShopDetail.isStoreInUploaded}">
+                            店内写真：<span style="color:#F00;">未登録</span><br />
+                        </apex:outputText>
+                    </div>
+                    <div class="c-col-7 c-col-md-12">
+                        <div class="c-button__wrapper u-mt-0 u-mb-0">
+                            <input type="button" class="c-button js-modal {!IF(ShopDetail.isStoreInUploaded && ShopDetail.isStoreOutUploaded, 'c-button--border', '')}"
+                                   data-target-name="{!ShopDetail.shop.Name}" data-target-id="{!ShopDetail.shop.Id}"
+                                   data-status-out="{!IF(ShopDetail.isStoreOutUploaded, '1', '0')}"
+                                   data-status-in="{!IF(ShopDetail.isStoreInUploaded, '1', '0')}"
+                                   data-target="modal-store" value="この店舗の写真をアップロードする" />
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+            <div class="u-mt-10 u-mb-10">
+            </div>
+        </apex:repeat>
+    </apex:outputText>
+    
+    <!--open前-->
+    <apex:form id="beforeOpen1">
+        <apex:outputText rendered="{! mp.beforeOpenStoreCheck}">
+            <div class="u-mb-20">
+                <div class="c-box has-icon box green">
+                    <div class="c-box__inner">
+                        <ul>
+                            開業・営業準備中で店舗写真が撮影できない場合は、以下いずれかの画像のアップロード、および、関連情報を入力してください。<br/>
+                            【アップロードする画像について】<br/>
+                            <li style="list-style:disc" class="u-mb-5">営業許可証、許認可証など　  （契約者名、店舗住所が確認できるもの）</li>
+                            <li style="list-style:disc" class="u-mb-5">開業届 　　   （税務署受付印など届出した事実が確認できるもの）</li>
+                            <li style="list-style:disc" class="u-mb-5">賃貸契約書　（店舗住所、使用目的、契約者名が確認できるもの）</li>
+                            <li style="list-style:disc" class="u-mb-5">会社案内、事業計画書、出店計画書等（会社名と店舗住所が確認できるもの）</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <apex:repeat value="{!mp.notOpenYetShopDetailListUploaded}" var="ShopDetail">
+                <apex:outputText rendered="{! !ShopDetail.isBranch}">
+                    <div class="c-box has-icon blue u-mb-30" style="border-color:#aaa;background:#FFF;">
+                        <div class="c-form__input confirm">
+                            <p class="u-text-size-s u-text-sub">店舗名</p>
+                            <p>{!ShopDetail.shop.Name}</p>
+                        </div>
+                        <div class="c-form__input confirm">
+                            <p style="margin-bottom:0;border-bottom:none;">〒{!ShopDetail.shop.PostalCode}</p>
+                            <p>{!ShopDetail.shop.Prefectures}&nbsp;{!ShopDetail.shop.City}&nbsp;{!ShopDetail.shop.Town}&nbsp;{!ShopDetail.shop.Street}&nbsp;{!ShopDetail.shop.Building}</p>
+                        </div>
+                        <div class="c-row">
+                            <div class="c-col-5 c-col-md-12 u-mt-5 u-mb-10">
+                                <apex:outputText rendered="{!ShopDetail.isNotOpenYetStoreUploaded1}">
+                                    <apex:image url="{!URLFOR($Resource.mpLeadDiyAssets, '/assets/img/common/icon/ico_check_gr.svg')}" alt="" styleClass="u-mr-5" />
+                                    （必須）開店前店舗写真1：登録済み<br />
+                                </apex:outputText>
+                                <apex:outputText rendered="{! !ShopDetail.isNotOpenYetStoreUploaded1}">
+                                    （必須）開店前店舗写真1：<span style="color:#F00;">未登録</span><br />
+                                </apex:outputText>
+                                <apex:outputText rendered="{!ShopDetail.isNotOpenYetStoreUploaded2}">
+                                    <apex:image url="{!URLFOR($Resource.mpLeadDiyAssets, '/assets/img/common/icon/ico_check_gr.svg')}" alt="" styleClass="u-mr-5" />
+                                    （任意）開店前店舗写真2：登録済み<br />
+                                </apex:outputText>
+                                <apex:outputText rendered="{! !ShopDetail.isNotOpenYetStoreUploaded2}">
+                                    （任意）開店前店舗写真2：<span style="color:#F00;">未登録</span><br />
+                                </apex:outputText>
+                                <apex:outputText rendered="{!ShopDetail.isNotOpenYetStoreUploaded3}">
+                                    <apex:image url="{!URLFOR($Resource.mpLeadDiyAssets, '/assets/img/common/icon/ico_check_gr.svg')}" alt="" styleClass="u-mr-5" />
+                                    （任意）開店前店舗写真3：登録済み<br />
+                                </apex:outputText>
+                                <apex:outputText rendered="{! !ShopDetail.isNotOpenYetStoreUploaded3}">
+                                    （任意）開店前店舗写真3：<span style="color:#F00;">未登録</span><br />
+                                </apex:outputText>
+                                <apex:outputText rendered="{!ShopDetail.isNotOpenYetStoreUploaded4}">
+                                    <apex:image url="{!URLFOR($Resource.mpLeadDiyAssets, '/assets/img/common/icon/ico_check_gr.svg')}" alt="" styleClass="u-mr-5" />
+                                    （任意）開店前店舗写真4：登録済み<br />
+                                </apex:outputText>
+                                <apex:outputText rendered="{! !ShopDetail.isNotOpenYetStoreUploaded4}">
+                                    （任意）開店前店舗写真4：<span style="color:#F00;">未登録</span><br />
+                                </apex:outputText>
+                            </div>
+                            <div class="c-col-7 c-col-md-12">
+                                <div class="c-button__wrapper u-mt-0 u-mb-0">
+                                    <input type="button" class="c-button js-modal-before-open {!IF(ShopDetail.isNotOpenYetStoreUploaded1, 'c-button--border', '')}"
+                                           data-target-name="{!ShopDetail.shop.Name}" data-target-id="{!ShopDetail.shop.Id}"
+                                           data-befor-open1="{!IF(ShopDetail.isNotOpenYetStoreUploaded1, '1', '0')}"
+                                           data-befor-open2="{!IF(ShopDetail.isNotOpenYetStoreUploaded2, '1', '0')}"
+                                           data-befor-open3="{!IF(ShopDetail.isNotOpenYetStoreUploaded3, '1', '0')}"
+                                           data-befor-open4="{!IF(ShopDetail.isNotOpenYetStoreUploaded4, '1', '0')}"
+                                           data-target="modal-store-before-open" value="この店舗の写真をアップロードする" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </apex:outputText>
+                <apex:outputText rendered="{!ShopDetail.isBranch}">
+                    <div class="c-box has-icon blue u-mb-30" style="border-color:#aaa;background:#FFF;">
+                        <div class="c-form__input confirm">
+                            <p class="u-text-size-s u-text-sub">店舗名</p>
+                            <p>{!ShopDetail.shop.Name}</p>
+                        </div>
+                        <div class="c-form__input confirm">
+                            <p style="margin-bottom:0;border-bottom:none;">〒{!ShopDetail.shop.PostalCode}</p>
+                            <p>{!ShopDetail.shop.Prefectures}&nbsp;{!ShopDetail.shop.City}&nbsp;{!ShopDetail.shop.Town}&nbsp;{!ShopDetail.shop.Street}&nbsp;{!ShopDetail.shop.Building}</p>
+                        </div>
+                        <div class="c-row">
+                            <div class="c-col-5 c-col-md-12 u-mt-5 u-mb-10">
+                                <apex:outputText rendered="{!ShopDetail.isStoreOutUploaded}">
+                                    <apex:image url="{!URLFOR($Resource.mpLeadDiyAssets, '/assets/img/common/icon/ico_check_gr.svg')}" alt="" styleClass="u-mr-5" />
+                                    店舗外観写真：登録済み<br />
+                                </apex:outputText>
+                                <apex:outputText rendered="{! !ShopDetail.isStoreOutUploaded}">
+                                    店舗外観写真：<span style="color:#F00;">未登録</span><br />
+                                </apex:outputText>
+                                <apex:outputText rendered="{!ShopDetail.isStoreInUploaded}">
+                                    <apex:image url="{!URLFOR($Resource.mpLeadDiyAssets, '/assets/img/common/icon/ico_check_gr.svg')}" alt="" styleClass="u-mr-5" />
+                                    店内写真：登録済み<br />
+                                </apex:outputText>
+                                <apex:outputText rendered="{! !ShopDetail.isStoreInUploaded}">
+                                    店内写真：<span style="color:#F00;">未登録</span><br />
+                                </apex:outputText>
+                            </div>
+                            <div class="c-col-7 c-col-md-12">
+                                <div class="c-button__wrapper u-mt-0 u-mb-0">
+                                    <input type="button" class="c-button js-modal {!IF(ShopDetail.isStoreInUploaded && ShopDetail.isStoreOutUploaded, 'c-button--border', '')}"
+                                           data-target-name="{!ShopDetail.shop.Name}" data-target-id="{!ShopDetail.shop.Id}"
+                                           data-status-out="{!IF(ShopDetail.isStoreOutUploaded, '1', '0')}"
+                                           data-status-in="{!IF(ShopDetail.isStoreInUploaded, '1', '0')}"
+                                           data-target="modal-store" value="この店舗の写真をアップロードする" />
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </apex:outputText>
+                <div class="u-mt-10 u-mb-10">
+                </div>
+            </apex:repeat>
+            
+        </apex:outputText>
+    </apex:form>
+    
+    <div id="modal-license" class="c-modal">
+        <div class="c-modal-inner">
+            <div class="c-modal-section">
+                <div class="u-mb-10">
+                    <div class="c-box has-icon box yellow">
+                        <div class="c-box__inner">
+                            <ul>
+                                <li style="list-style:disc">必ず原本の画像をご用意ください。コピーされているものは不可となります。</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="u-mb-10">
+                    <div class="c-box has-icon box green">
+                        <div class="c-box__inner">
+                            <apex:outputText rendered="{!outputData.Licensing_Antique__c}">
+                                <h4 class="c-box__iconttl"><span>必要書類：<br />【古物商取引】古物商許可証</span></h4>
+                            </apex:outputText>
+                            <apex:outputText rendered="{!outputData.Licensing_TreatmentPlace__c}">
+                                <h4 class="c-box__iconttl"><span>必要書類：<br />【施術所】開設届出済証明書</span></h4>
+                            </apex:outputText>
+                            <apex:outputText rendered="{!outputData.Licensing_TravelAgency__c}">
+                                <h4 class="c-box__iconttl"><span>必要書類：<br />【旅行代理店】旅行業者登録票</span></h4>
+                            </apex:outputText>
+                            <apex:outputText rendered="{!outputData.Licensing_Consultation__c}">
+                                <h4 class="c-box__iconttl"><span>必要書類：<br />【医療相談、法律相談】資格認定証／登録証</span></h4>
+                            </apex:outputText>
+                            <apex:outputText rendered="{!outputData.Licensing_DrivingAgency__c}">
+                                <h4 class="c-box__iconttl"><span>必要書類：<br />【運転代行業】動車運転代行業認定証の名義と番号がわかる書類</span></h4>
+                            </apex:outputText>
+                            <apex:outputText rendered="{!outputData.Licensing_PublicGambling__c}">
+                                <h4 class="c-box__iconttl"><span>必要書類：<br />【公営ギャンブル】主催者でない場合、主催者からの販売委託契約書の写し</span></h4>
+                            </apex:outputText>
+                            <apex:outputText rendered="{!outputData.Licensing_InsuranceBusiness__c}">
+                                <h4 class="c-box__iconttl"><span>必要書類：<br />【保険業】代理店委託契約書、または2名分の保険募集人資格登録証か合格証</span></h4>
+                            </apex:outputText>
+                            <apex:outputText rendered="{!outputData.Licensing_TicketSales__c}">
+                                <h4 class="c-box__iconttl"><span>必要書類：<br />【興行チケット販売業】二次販売の場合、古物商許可証</span></h4>
+                            </apex:outputText>
+                            <apex:outputText rendered="{!outputData.Licensing_PrepaidCard__c}">
+                                <h4 class="c-box__iconttl"><span>必要書類：<br />【商品券等販売業】二次販売の場合、古物商許可証</span></h4>
+                            </apex:outputText>
+                        </div>
+                    </div>
+                </div>
+                <apex:form id="form1">
+                    <div class="u-mb-30 u-mb-md-25 fileWrap">
+                        <div class="c-form__ttl">
+                            <h3 class="c-ttl-section">許認可証1</h3>
+                        </div>
+                        <button class="c-button c-button--gray icon upload" onclick='document.querySelector("input[type=\"file\"][id$=\":license1\"]").click();return false;'>書類/写真を選択する</button>
+                        <apex:inputFile id="license1" value="{!mp.attachment.body}" filename="{!mp.attachment.name}" styleClass="d-none" onchange="selectFile(this);"/>
+                        <p class="select-file-name" style="display:none;"></p>
+                        <p class="u-text-size-s u-text-error u-mb-5"></p>
+                    </div>
+                    
+                    <div class="u-mb-30 u-mb-md-25 fileWrap">
+                        <div class="c-form__ttl">
+                            <h3 class="c-ttl-section">許認可証２（１ファイルに収まらない場合）</h3>
+                        </div>
+                        <button class="c-button c-button--gray icon upload" onclick='document.querySelector("input[type=\"file\"][id$=\":license2\"]").click();return false;'>書類/写真を選択する</button>
+                        <apex:inputFile id="license2" value="{!mp.attachment2.body}" filename="{!mp.attachment2.name}" styleClass="d-none" onchange="selectFile(this);"/>
+                        <p class="select-file-name" style="display:none;"></p>
+                        <p class="u-text-size-s u-text-error u-mb-5"></p>
+                    </div>
+                    
+                    <div class="u-mb-45 u-mb-md-25 fileWrap">
+                        <div class="c-form__ttl">
+                            <h3 class="c-ttl-section">許認可証３（２ファイルに収まらない場合）</h3>
+                        </div>
+                        <button class="c-button c-button--gray icon upload" onclick='document.querySelector("input[type=\"file\"][id$=\":license3\"]").click();return false;'>書類/写真を選択する</button>
+                        <apex:inputFile id="license3" value="{!mp.attachment3.body}" filename="{!mp.attachment3.name}" styleClass="d-none" onchange="selectFile(this);"/>
+                        <p class="select-file-name" style="display:none;"></p>
+                        <p class="u-text-size-s u-text-error u-mb-5"></p>
+                    </div>
+                    <div class="c-button__wrapper u-mb-10">
+                        <apex:commandButton action="{!mp.uploadLicenseFile}" value="選択したファイルをアップロード" styleClass="c-button" onclick="if(checkFileLicense(this)){return false};simpleNext();" />
+                    </div>
+                </apex:form>
+            </div>
+            <div class="c-modal-close" id="modalClose"><span></span><span></span></div>
+        </div>
+    </div>
+    
+    <div id="modal-store" class="c-modal">
+        <div class="c-modal-inner">
+            <div class="c-modal-section">
+                <apex:form id="form2">
+                    <h1 class="c-ttl-page u-mt-0 u-mb-20 u-text-center" id="targetShopName"></h1>
+                    <div class="u-mb-30 fileWrap">
+                        <div class="c-form__ttl">
+                            <h3 class="c-ttl-section">店舗外観写真</h3>
+                        </div>
+                        <p>撮影例・撮影ポイントは<a class="u-text-link blank" href="https://paypay.ne.jp/store/introduction/paypay-outside/" target="_blank">こちら</a>をご覧ください</p>
+                        <div class="c-box has-icon green u-mb-5">
+                            <div class="c-box__inner">
+                                お店の建物、入り口、名称、看板が鮮明に写るようご撮影ください。
+                            </div>
+                        </div>
+                        <button class="c-button c-button--gray icon upload" onclick='document.querySelector("input[type=\"file\"][id$=\":file1\"]").click();return false;'>店舗外観写真を選択する</button>
+                        <apex:inputFile id="file1" value="{!mp.attachment.body}" filename="{!mp.attachment.name}" styleClass="d-none" onchange="selectFile(this);" accept="image/*"/>
+                        <p class="select-file-name" style="display:none;"></p>
+                        <p class="u-text-size-s u-text-error u-mb-5"></p>
+                    </div>
+                    
+                    <div class="u-mb-45 fileWrap">
+                        <div class="c-form__ttl">
+                            <h3 class="c-ttl-section">店内写真</h3>
+                        </div>
+                        <p>撮影例・撮影ポイントは<a class="u-text-link blank" href="https://paypay.ne.jp/store/introduction/paypay-inside/" target="_blank">こちら</a>をご覧ください</p>
+                        <div class="c-box has-icon green u-mb-5">
+                            <div class="c-box__inner">
+                                商品やサービス提供場所が確認できる写真をお願いいたします。<br />
+                                お客様や撮影者の方が写真に写らないようご配慮ください。
+                            </div>
+                        </div>
+                        <button class="c-button c-button--gray icon upload" onclick='document.querySelector("input[type=\"file\"][id$=\":file2\"]").click();return false;'>店内写真を選択する</button>
+                        <apex:inputFile id="file2" value="{!mp.attachment2.body}" filename="{!mp.attachment2.name}" styleClass="d-none" onchange="selectFile(this);" accept="image/*"/>
+                        <p class="select-file-name" style="display:none;"></p>
+                        <p class="u-text-size-s u-text-error u-mb-5"></p>
+                    </div>
+                    <apex:inputHidden value="{!mp.uploadTargetId}" id="uploadTargetId"/>
+                    <div class="c-button__wrapper u-mb-10">
+                        <apex:commandButton action="{!mp.uploadStoreImage}" value="選択した写真をアップロード" styleClass="c-button" onclick="if(checkFileStore(this)){return false};simpleNext();" />
+                    </div>
+                </apex:form>
+                
+            </div>
+            <div class="c-modal-close" id="modalClose"><span></span><span></span></div>
+        </div>
+    </div>
+    
+    <!--open前--->
+    <div id="modal-store-before-open" class="c-modal">
+        <div class="c-modal-inner">
+            <div class="c-modal-section">
+                <apex:form id="form4">
+                    <h1 class="c-ttl-page u-mt-0 u-mb-20 u-text-center" id="beforeOpenTargetShopName"></h1>
+                    <div class="u-mb-30 fileWrap">
+                        <div class="c-form__ttl">
+                            <h3 class="c-ttl-section">資料１</h3>
+                            <div class="c-label red">必須</div>
+                        </div>
+                        <button class="c-button c-button--gray icon upload" onclick='document.querySelector("input[type=\"file\"][id$=\":beforeOpenFile1\"]").click();return false;'>資料１の写真を選択する</button>
+                        <apex:inputFile id="beforeOpenFile1" value="{!mp.beforeOpenattachment1.body}" filename="{!mp.beforeOpenattachment1.name}" styleClass="d-none" onchange="selectFile(this);" accept="image/*"/>
+                        <p class="select-file-name" style="display:none;"></p>
+                        <p class="u-text-size-s u-text-error u-mb-5"></p>
+                    </div>
+                    
+                    <div class="u-mb-45 fileWrap">
+                        <div class="c-form__ttl">
+                            <h3 class="c-ttl-section">資料２</h3>
+                            <div class="c-label blue">任意</div>
+                        </div>
+                        <button class="c-button c-button--gray icon upload" onclick='document.querySelector("input[type=\"file\"][id$=\":beforeOpenFile2\"]").click();return false;'>資料２の写真を選択する</button>
+                        <apex:inputFile id="beforeOpenFile2" value="{!mp.beforeOpenattachment2.body}" filename="{!mp.beforeOpenattachment2.name}" styleClass="d-none" onchange="selectFile(this);" accept="image/*"/>
+                        <p class="select-file-name" style="display:none;"></p>
+                        <p class="u-text-size-s u-text-error u-mb-5"></p>
+                    </div>
+                    
+                    <div class="u-mb-45 fileWrap">
+                        <div class="c-form__ttl">
+                            <h3 class="c-ttl-section">資料３</h3>
+                            <div class="c-label blue">任意</div>
+                        </div>
+                        <button class="c-button c-button--gray icon upload" onclick='document.querySelector("input[type=\"file\"][id$=\":beforeOpenFile3\"]").click();return false;'>資料３の写真を選択する</button>
+                        <apex:inputFile id="beforeOpenFile3" value="{!mp.beforeOpenattachment3.body}" filename="{!mp.beforeOpenattachment3.name}" styleClass="d-none" onchange="selectFile(this);" accept="image/*"/>
+                        <p class="select-file-name" style="display:none;"></p>
+                        <p class="u-text-size-s u-text-error u-mb-5"></p>
+                    </div>
+                    
+                    <div class="u-mb-45 fileWrap">
+                        <div class="c-form__ttl">
+                            <h3 class="c-ttl-section">資料４</h3>
+                            <div class="c-label blue">任意</div>
+                        </div>
+                        <button class="c-button c-button--gray icon upload" onclick='document.querySelector("input[type=\"file\"][id$=\":beforeOpenFile4\"]").click();return false;'>資料４の写真を選択する</button>
+                        <apex:inputFile id="beforeOpenFile4" value="{!mp.beforeOpenattachment4.body}" filename="{!mp.beforeOpenattachment4.name}" styleClass="d-none" onchange="selectFile(this);" accept="image/*"/>
+                        <p class="select-file-name" style="display:none;"></p>
+                        <p class="u-text-size-s u-text-error u-mb-5"></p>
+                    </div>
+                    <apex:inputHidden value="{!mp.uploadTargetId}" id="beforeOpenUploadTargetId"/>
+                    <div class="c-button__wrapper u-mb-10">
+                        <apex:commandButton action="{!mp.uploadNotOpenYetStoreImage}" value="選択した写真をアップロード" styleClass="c-button" onclick="if(checkFileStore(this)){return false};simpleNext();" />
+                    </div>
+                </apex:form>
+                
+            </div>
+            <div class="c-modal-close" id="modalClose"><span></span><span></span></div>
+        </div>
+    </div>
+    
+    <div class="u-mt-25 u-mb-25">
+        <hr />
+    </div>
+    
+    <apex:form id="form3">
+        <div class="c-button__wrapper">
+            <div class="c-row">
+                <div class="c-col-3">
+                    <apex:commandLink action="{!mp.back}" value="戻る" styleClass="c-button c-button--border"/>
+                </div>
+                <div class="c-col-9">
+                    <apex:outputText rendered="{!(mp.isStoreUploadFinish&&!mp.beforeOpenStoreCheck)||(mp.isNotOpenYetStoreUploadFinish&&mp.beforeOpenStoreCheck)}">
+                        <apex:commandButton action="{!mp.goNext}" value="次へ" styleClass="c-button" onclick="if(!slideNext(this)){return};" reRender="body"/>
+                    </apex:outputText>
+                    <apex:outputText rendered="{! NOT(mp.isStoreUploadFinish)&&!mp.beforeOpenStoreCheck}">
+                        <input type="button" value="次へ" class="c-button disabled"/>
+                        <div class="u-mt-10" style="color:#F00;font-size:90%;text-align:center;">※店舗写真のアップロード完了後、次へ進めるようになります。</div>
+                    </apex:outputText>
+                    <apex:outputText rendered="{! NOT(mp.isNotOpenYetStoreUploadFinish)&&mp.beforeOpenStoreCheck}">
+                        <input type="button" value="次へ" class="c-button disabled" />
+                        <div class="u-mt-10" style="color:#F00;font-size:90%;text-align:center;">※開店予定店舗写真のアップロード完了後、次へ進めるようになります。</div>
+                    </apex:outputText>
+                </div>
+            </div>
+        </div>
+        
+    </apex:form>
+    <apex:outputText rendered="{!mp.code != 'paypayagency'}">
+        <div class="u-mt-10 u-mb-20">
+            <div class="c-box has-icon box yellow">
+                <div class="c-box__inner">
+                    アップロードの際、エラー画面へ遷移したり、何度試しても成功しない場合は、一度ブラウザを更新いただいてから再度アップロードをお願い致します。<br />
+                    もし解決しない場合や、カメラが起動しないなどお困りの場合は、大変お手数をおかけしますが下記にお電話ください。<br />
+                    ------<br />
+                    <div style="font-size:95%;">
+                        0120-957-640（10:00～19:00）<br />
+                        年中無休（メンテナンス日を除く）
+                    </div>
+                    ------<br />
+                </div>
+            </div>
+        </div>
+    </apex:outputText>
+</apex:component>

@@ -1,0 +1,471 @@
+<apex:component allowDML="true" id="main" layout="block">
+<apex:attribute name="mp" description="mpLeadFormDiy" type="mpLeadFormDiy" required="true"/>
+<apex:attribute name="inputData" description="mpOpportunity__c" type="mpOpportunity__c" required="true"/>
+<apex:attribute name="input" description="mpFormInputClass" type="mpFormInputClass" required="true"/>
+<apex:attribute name="outputData" description="mpOpportunity__c" type="mpOpportunity__c" required="true"/>
+
+<script>
+    $( document ).ready(function() {
+        var formStoreSales = "{! outputData.estimatedOpeningDate__c}";
+        var radiobtn_before = $('input[type="checkbox"][id$=":beforeOpenButton"]');
+        if(formStoreSales==null){
+        	radiobtn_before.checked = false;
+        }else{
+        	radiobtn_before.checked = true;
+        }
+        beforeOpenStoreButton();
+    });
+    
+    function beforeOpenStoreButton(){
+        var radiobtn_before = $('input[type="checkbox"][id$=":beforeOpenButton"]');
+        if ($('[id$=beforeOpenButton]').is(':checked')==false) {
+            document.getElementById("beforeOpenSection").style.display="none";
+        }else{
+            document.getElementById("beforeOpenSection").style.display="block";
+        }
+    }
+    //生年月日入力 西暦和暦併記用
+    var birthdayFunction = function($yearSelect, $monthSelect, $daySelect, $selectBirthDayError, $hiddenBirthday) {
+        if(!($yearSelect && $monthSelect && $daySelect && $selectBirthDayError && $hiddenBirthday)) return;
+        var y = $yearSelect.value;
+        var m = $monthSelect.value;
+        var d = $daySelect.value;
+        
+        $selectBirthDayError.innerText='';
+        $hiddenBirthday.value = ' ';
+        
+        if ( y && m && d && parseInt(y)!=0 && parseInt(m)!=0 && parseInt(d)!=0) {
+            var today = new Date();
+            var ds = new Date( parseInt(y), parseInt(m)-1, parseInt(d));
+            var todayDate = new Date( today.getFullYear(), today.getMonth(), today.getDate());
+            var threeMonthsLaterDate = new Date( today.getFullYear(), today.getMonth()+3, today.getDate());
+            if ( ds.getFullYear() != parseInt(y) || ds.getMonth() != parseInt(m)-1 || ds.getDate() != parseInt(d)) {
+                $selectBirthDayError.innerText=('有効な開店予定日を選択してください。');
+            }else if(ds<todayDate){
+                $selectBirthDayError.innerText=('本日日付より過去日付は選択できません。');
+            }else if(ds>threeMonthsLaterDate){
+                $selectBirthDayError.innerText=('本日日付より3ヶ月以上後の日付は選択できません。');
+            }else{
+                $hiddenBirthday.value = ( y+'/'+m+'/'+d );
+            }
+        }
+    };
+    
+    function CustomerBirthdaySelectChange(){
+        $yearSelect = document.querySelector('[id$=":customerbirthyearSelect"]');
+        $monthSelect = document.querySelector('[id$=":customerbirthmonthSelect"]');
+        $daySelect = document.querySelector('[id$=":customerbirthdaySelect"]');
+        $hiddenBirthday = document.querySelector('[id$=":hiddenCustomerBirthday"]');
+        $selectBirthDayError = $(".birthdayErrorMsg")[0];
+        birthdayFunction($yearSelect, $monthSelect, $daySelect, $selectBirthDayError, $hiddenBirthday);
+    };
+
+$(function(){
+    var select = $('input[id$=":InputCorporateForm"]');
+    if (select.val()) {
+        $('input[name="corporateForm"][value="'+select.val()+'"]').prop('checked', true);
+    }
+    $('input[name="corporateForm"]').change(function(){
+        if ($(this).prop('checked')) {
+            if ($(this).attr('id') == 'corporateForm-corp') {
+                select.val('法人');
+            } else {
+                select.val('個人事業主');
+            }
+        }
+    });
+    $('select[id$=":InputProductName"]').each(function(){
+        if (MutationObserver) {
+            if ($(this).parent().prop("tagName") == 'SPAN') {
+                var p = $(this).parent();
+                var observer = new MutationObserver(function(){
+                    var _select = p.find('select[id$=":InputProductName"]')[0];
+                    if (_select) {
+                        initSelect(_select);
+                        if (! $(_select).prop('disabled')) {
+                            var n = String.fromCharCode(95,1,95);
+                            if ($(_select).val() == '' || $(_select).val().substring(0,3) == n) {
+                                /*
+                                $(_select).css('background-color', 'rgb(255, 242, 199)').change(function(){
+                                     $(this).css('background-color', 'rgb(255, 255, 255)');
+                                 });
+                                 */
+                            }
+                        }
+                    }
+                }).observe(p[0], {'childList': true});
+            }
+        }
+    });
+    $(function(){
+        $onlineAlert = $("#onlineAlert");
+        $('select[id$=":InputFormStoreSales"]').change(function(){
+            if ($(this).val().indexOf("通信販売") == 0) {
+                $onlineAlert.show();
+            } else {
+                $onlineAlert.hide();
+            }
+        }).change();
+    });
+});
+function _switchProductName() {
+    $('.limitedWrap').hide();
+    $('.SpecifiedContinuousServicesWrap').hide();
+    $('.balanceOnly').hide();
+    $('.moneyOnly').hide();
+    var check1 = $('input[id$=":AgreementOfWalletOnlyPrecaution"]');
+    var check2 = $('input[id$=":AgreementOfSpecifiedContinuousServices"]');
+    check1.prop('required', false);
+    check2.prop('required', false);
+    if ($('select[id$=":InputProductName"]').val().indexOf('残高限定')> 0) {
+        $('.limitedWrap').show();
+        $('.balanceOnly').show();
+        check1.prop('required', true);
+    }
+    if ($('select[id$=":InputProductName"]').val().indexOf('マネー限定')> 0) {
+        $('.limitedWrap').show();
+        $('.moneyOnly').show();
+        check1.prop('required', true);
+    }
+    if ($('select[id$=":InputProductName"]').val().indexOf('特定継続的役務')> 0) {
+        $('.SpecifiedContinuousServicesWrap').show();
+        check2.prop('required', true);
+    }
+}
+$(function(){
+    _switchProductName();
+});
+    
+    
+</script>
+  <h1 class="c-ttl-page u-mt-0 u-text-center">事業情報を入力してください</h1>
+  <p class="c-ttl-article u-text-center"></p>
+
+  <apex:form id="form1">
+      <div class="c-form__wrapper">
+        <div class="c-form__ttl">
+          <h3 class="c-ttl-section">事業形態</h3>
+          <div class="c-label red">必須</div>
+        </div>
+    
+        <div class="c-row">
+          <div class="c-col-6 c-col-md-12">
+            <div class="c-form__input">
+              <label class="c-radio__wrap">
+                <input class="c-radio" type="radio" name="corporateForm" id="corporateForm-corp" value="法人" />
+                <span class="c-radio__v"></span>
+                <span>法人</span>
+              </label>
+            </div>
+          </div>
+          <div class="c-col-6 c-col-md-12">
+            <div class="c-form__input">
+              <label class="c-radio__wrap">
+                <input class="c-radio" type="radio" name="corporateForm" id="corporateForm-ind" value="個人事業主" />
+                <span class="c-radio__v"></span>
+                <span>個人事業主</span>
+              </label>
+            </div>
+          </div>
+            <apex:inputHidden id="InputCorporateForm" value="{! input.data['CorporateForm__c'].val}" required="True" />
+        </div>
+      </div>
+
+      <div class="c-form__wrapper">
+        <div class="c-form__ttl">
+          <h3 class="c-ttl-section">販売形態</h3>
+          <div class="c-label red">必須</div>
+        </div>
+        <div class="c-form__input">
+          <div class="c-form__select">
+            <apex:inputField value="{! inputData.FormStoreSales__c}" id="InputFormStoreSales" required="True" />
+          </div>
+        </div>
+      </div>
+      
+      <div class="c-box has-icon yellow" id="onlineAlert" style="display:none;">
+          <div class="c-box__inner">
+              <h4 class="c-box__iconttl">
+                  <span>実店舗でPayPayをご利用される方は「通信販売」ではなく「店舗・宅配」をご選択ください。実店舗をお持ちでなく、ECなどオンライン店舗でのみ利用される方は、本申込フォームではなく下記ページよりお問い合わせをお願いします。
+                  </span>
+              </h4>
+              <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="u-text-link blank" href="https://paypay.ne.jp/store-online/" target="_blank">https://paypay.ne.jp/store-online/</a></p>
+          </div>
+      </div>
+      <br/>      
+      <div class="c-form__wrapper">
+        <div class="c-form__ttl">
+          <h3 class="c-ttl-section">業種</h3>
+          <div class="c-label red">必須</div>
+        </div>
+        <div class="c-form__input">
+          <div class="c-form__select">
+            <apex:inputField value="{! inputData.MerchandiseClassification__c}" id="InputMerchandiseClassification" required="True" onchange="_switchProductName();"/>
+          </div>
+        </div>
+      </div>
+    
+      <div class="c-form__wrapper">
+        <div class="c-form__ttl">
+          <h3 class="c-ttl-section">お取り扱い商品 詳細</h3>
+          <div class="c-label red">必須</div>
+        </div>
+        <p>
+            複数の商材をお取り扱いの場合には最もふさわしいものを選択してください。<br />
+            選択にお悩みの際は「<a class="u-text-link blank" href="https://paypay.ne.jp/store/introduction/examination/" target="_blank">販売形態・お取り扱い商品について</a>」を参照してください。
+        </p>
+        <div class="c-form__input">
+          <div class="c-form__select">
+            <apex:inputField value="{! inputData.ProductName__c}" id="InputProductName" required="True" onchange="_switchProductName()"/>
+          </div>
+        </div>
+      </div>
+      
+      <div class="c-form__wrapper">
+        <div class="c-form__ttl">
+          <h3 class="c-ttl-section">提供サービス 詳細</h3>
+          <div class="c-label red">必須</div>
+        </div>
+        <div class="c-form__input">
+          <div class="c-form__input">
+            <apex:inputField value="{! inputData.ProductNameETC__c}" styleClass="c-form" style="min-width:100%;" required="True"/>
+          </div>
+        </div>
+          <div class="u-mb-60">
+              PayPay決済をご利用予定の商品・サービスをもれなくご記入ください。
+              <div style="padding:5px;">
+                  入力例<br />
+                  <ul>
+                      <li style="list-style:disc;">洋食屋です。夜はお酒も提供してます。宅配も行ってます。</li>
+                      <li style="list-style:disc;">手作り雑貨や輸入雑貨の販売をしてます。</li>
+                      <li style="list-style:disc;">美容院です。シャンプーや整髪料の販売も行ってます。</li>
+                      <li style="list-style:disc;">女性向けのエステです。月額制のサービスも提供してます。</li>
+                  </ul>
+                  <br />
+                  NG例<br />
+                  <ul>
+                      <li style="list-style:disc;">小売</li>
+                      <li style="list-style:disc;">デジコン</li>
+                      <li style="list-style:disc;">消費者向けサービスなど</li>
+                  </ul>
+                  ※詳細が確認できない場合、後日メール等で確認させていただく場合があります。
+              </div>
+          </div>
+      </div>
+      
+      <div class="c-form__wrapper">
+          <div class="c-form__ttl">
+              <h3 class="c-ttl-section">年商区分※FC(フランチャイズ)店の場合は屋号全体での年商</h3>
+              <div class="c-label red">必須</div>
+          </div>
+          <div class="c-form__input">
+              <div class="c-form__select">
+                  <apex:selectList value="{!inputData.ProductNameInternal__c}" id="InputProductNameInternal" required="True" size="1">
+                      <apex:selectOption itemValue="" itemLabel="選択してください"/>
+                      <apex:selectOption itemValue="10億円以上" itemLabel="10億円以上"/>
+                      <apex:selectOption itemValue="10億円未満" itemLabel="10億円未満"/>
+                  </apex:selectList>
+              </div>
+          </div>
+      </div>
+      <apex:outputPanel id="beforeOpeningStoreRerender" layout="block">
+          <div class="c-form__wrapper">
+              <div class="c-form__ttl">
+                  <h3 class="c-ttl-section">開業・営業有無</h3>
+              </div>
+              <div class="c-form__input">
+                  <label class="c-check__wrap">
+                      <!--<apex:inputCheckbox value="{!mp.beforeOpenStoreCheck}" styleClass="c-check">
+                          <apex:actionSupport event="onchange" action="{!mp.beforeOpenStoreChecking}" reRender="beforeOpeningStoreRerender">
+                              <apex:param name="beforeOpenStoreCheck" value="{!mp.beforeOpenStoreCheck}"/>
+                          </apex:actionSupport>
+                      </apex:inputCheckbox>-->
+                      <apex:inputCheckbox value="{!mp.beforeOpenStoreCheck}" styleClass="c-check" id="beforeOpenButton" onclick="beforeOpenStoreButton();"/>
+                      <span class="c-check__v"></span>
+                      <span>店舗が完成していない（開業・営業準備中）</span>
+                  </label>
+              </div>
+          </div>
+
+          <!--<apex:outputPanel id="beforeOpenSection" rendered="{! mp.beforeOpenStoreCheckTxt=='true'}">-->
+
+			<div id="beforeOpenSection">            
+              <div class="c-form__wrapper">
+                  <div class="c-form__ttl">
+                      
+                      <h3 class="c-ttl-section">開店予定日</h3>
+                      <div class="c-label red">必須</div>
+                  </div>
+                  <div class="c-form__input">
+                      <div class="c-row">
+                          <div class="c-col-6 c-col-md-12">
+                              <div class="c-form__select">
+                                  <apex:selectList id="customerbirthyearSelect" value="{!mp.merchantOpenYearVal}" size="1" onchange="CustomerBirthdaySelectChange();" required="True" >
+                                      <apex:selectOptions value="{!mp.storeOpenYearlist}"/>
+                                  </apex:selectList>
+                              </div>
+                          </div>
+                          <div class="c-col-3 c-col-md-12">
+                              <div class="c-form__select">
+                                  <apex:selectList id="customerbirthmonthSelect" value="{!mp.merchantOpenMonthVal}" size="1" onchange="CustomerBirthdaySelectChange();" required="True" >
+                                      <apex:selectOptions value="{!mp.monthlist}"/>
+                                  </apex:selectList>
+                              </div>
+                          </div>
+                          <div class="c-col-3 c-col-md-12">
+                              <div class="c-form__select">
+                                  <apex:selectList id="customerbirthdaySelect" value="{!mp.merchantOpenDayVal}" size="1" onchange="CustomerBirthdaySelectChange();" required="True" >
+                                      <apex:selectOptions value="{!mp.daylist}"/>
+                                  </apex:selectList>
+                              </div>
+                              
+                          </div>
+                      </div>
+                      <apex:inputHidden value="{!input.data['estimatedOpeningDate__c'].val}" id="hiddenCustomerBirthday" />
+                      <p class="u-text-size-s u-text-error u-mb-5 birthdayErrorMsg">{!input.data['estimatedOpeningDate__c'].error}</p>
+                  </div>
+                  <p class="u-text-size-s u-text-sub" style="color:red;"> ※ 開店予定日が3ヶ月以上先の場合はお申し込みができません。</p>
+                  
+                  <div class="c-form__wrapper">
+                      <div class="c-form__ttl">
+                          <h3 class="c-ttl-section">連絡事項</h3>
+                          <div class="c-label blue">任意</div>
+                      </div>
+                      <div class="c-form__input">
+                          <apex:inputField value="{! inputData.qdditionalRemittanceMatters__c}"  id="qdditionalRemittanceMatters" styleClass="c-form"/>
+                      </div>
+                  </div>
+                  <p class="u-text-size-s u-text-sub" style="color:red;">※ アップロード画像以外に開業・出店する事実を確認できる情報などがあれば入力してください。<br />
+                      （Webの開店広告や求人広告のURL、出店場所の地図、商業施設等のURLなど）
+                  </p>
+              
+                  <div class="c-form__wrapper">
+                      <div class="c-form__ttl">
+                          <h3 class="c-ttl-section">地図掲載開始予定日</h3>
+                          <div class="c-label red">必須</div>
+                      </div>
+                      <div class="c-form__input">
+                          <div class="c-form__select">
+                              <apex:selectList value="{! inputData.MapDisplayTime__c}" size="1" required="True">
+                                  <apex:selectOption itemValue="キット到着後、約１週間後に掲載" itemLabel="約1週間以内に掲載"/>
+                                  <apex:selectOption itemValue="審査可決後、約1ヵ月後に掲載" itemLabel="約1ヵ月後に掲載"/>
+                                  <apex:selectOption itemValue="審査可決後、約3ヵ月後に掲載" itemLabel="約3ヵ月後に掲載"/>
+                              </apex:selectList>
+                          </div>
+                          <span style="font-size:12px;color:red;">※ 店舗情報がPayPayアプリ内のマップに表示される時期を選択ください。</span><br />
+                          <span style="font-size:12px;">※ 地図反映日は開業予定日以降を選択してください。<br/>
+                              開業予定日より前に地図への反映があると、PayPayご利用のお客様がご来店する可能性があるのでご注意ください。
+                              詳細は<a href="https://paypay.ne.jp/help-merchant/b0098/" target="_blank">こちら</a>
+                          </span>
+                          <span style="font-size:12px;">※ 「ご利用開始のお知らせメール」を配信後、1週間ほどでPayPayコードキット（QRコード）<br/>
+                              をご登録いただいた店舗住所に郵送いたします。お受け取りをお願いいたします。
+                              （1週間以上経過しても届かない場合は、加盟店サポート窓口よりお問い合わせください。　詳細は<a href="https://paypay.ne.jp/help-merchant/b0042/" target="_blank">こちら</a>）　
+                          </span>
+                      </div>
+                  </div>
+                </div>
+          </div>
+          <!--</apex:outputPanel>-->
+      </apex:outputPanel>
+      
+    <apex:inputHIdden value="{!mp.selectedCommercialViolationHistory}" id="selectedCommercialViolationHistory" />
+      <div class="limitedWrap" style="display:none;">
+          <div class="u-mt-45 u-mb-45">
+            <hr />
+          </div>
+
+          <div class="c-form__wrapper u-mb-5">
+            <div class="c-form__ttl">
+              <h3 class="c-ttl-section">支払い方法に関する注意事項</h3>
+              <div class="c-label red">必須</div>
+            </div>
+            <div class="c-form__input {!IF(input.data['AgreementOfWalletOnlyPrecaution__c'].hasError, 'error', '')}">
+              <label class="c-check__wrap">
+                <apex:inputCheckbox value="{!input.data['AgreementOfWalletOnlyPrecaution__c'].val}" styleClass="c-check" required="true"/>
+                <span class="c-check__v"></span>
+                <span>以下の注意事項を確認しました。</span>
+              </label>
+            </div>
+            <apex:outputText rendered="{!input.data['AgreementOfWalletOnlyPrecaution__c'].hasError}">
+              <p class="u-text-size-s u-text-error u-mb-5">{!input.data['AgreementOfWalletOnlyPrecaution__c'].error}</p>
+            </apex:outputText>
+          </div>
+          <p class="u-mb-60 moneyOnly" style="display:none;">
+            【マネー限定】がついている商材については「PayPayマネー」のみ取扱いが可能となります。<br />
+            「PayPayマネーライト」「PayPayポイント」「PayPayポイントライト」「クレジットカード」および「PayPayあと払い」の取扱いはできませんのでご注意ください。<br />
+                ※PayPay残高の詳細については<a class="u-text-link blank" href="https://paypay.ne.jp/help/c0048/" target="_blank">こちら</a>をご確認ください。
+          </p>
+          <p class="u-mb-60 balanceOnly" style="display:none;">
+            【残高限定】がついている商材については「PayPay残高」のみ取扱いが可能となります。<br />
+            「クレジットカード」「PayPayあと払い」の取扱いはできませんのでご注意ください。<br />
+                ※PayPay残高の詳細については<a class="u-text-link blank" href="https://paypay.ne.jp/help/c0048/" target="_blank">こちら</a>をご確認ください。
+          </p>
+      </div>
+
+      <div class="SpecifiedContinuousServicesWrap" style="display:none;">
+          <div class="c-form__wrapper u-mb-5">
+            <div class="c-form__ttl">
+              <h3 class="c-ttl-section">特定継続的役務に関する注意事項</h3>
+              <div class="c-label red">必須</div>
+            </div>
+            <div class="c-form__input {!IF(input.data['AgreementOfSpecifiedContinuousServices__c'].hasError, 'error', '')}">
+              <label class="c-check__wrap">
+                <apex:inputCheckbox value="{!input.data['AgreementOfSpecifiedContinuousServices__c'].val}" styleClass="c-check" required="true"/>
+                <span class="c-check__v"></span>
+                <span>特定継続的役務に関して、以下の注意事項を確認しました。</span>
+              </label>
+            </div>
+            <apex:outputText rendered="{!input.data['AgreementOfSpecifiedContinuousServices__c'].hasError}">
+              <p class="u-text-size-s u-text-error u-mb-5">{!input.data['AgreementOfSpecifiedContinuousServices__c'].error}</p>
+            </apex:outputText>
+          </div>
+          <p>
+              <ul>
+                <li style="list-style:disc;">商品／サービス等に関するPayPayユーザーからのクレームやトラブル等については、加盟店様の責任と費用において解決を図ること。</li>
+                <li style="list-style:disc;">特定商取引に関する法律等に基づき、PayPayユーザーに書面交付を行うこと。また、当該書面等によりクーリング・オフや解約方法等について説明すること。</li>
+              </ul>
+          </p>
+      </div>
+
+      <div class="u-mt-45 u-mb-45">
+        <hr />
+      </div>
+    
+      <div class="c-form__wrapper">
+        <div class="c-form__ttl">
+          <h3 class="c-ttl-section">ご確認ください</h3>
+          <div class="c-label blue">任意</div>
+        </div>
+        <div class="c-form__input {!IF(input.data['PayPayPlcHope__c'].hasError, 'error', '')}">
+          <label class="c-check__wrap">
+            <apex:inputCheckbox value="{!input.data['PayPayPlcHope__c'].val}" styleClass="c-check" required="true"/>
+            <span class="c-check__v"></span>
+            <span>「PayPayクーポン」に興味があります。</span>
+          </label>
+        </div>
+        <apex:outputText rendered="{!input.data['PayPayPlcHope__c'].hasError}">
+          <p class="u-text-size-s u-text-error u-mb-5">{!input.data['PayPayPlcHope__c'].error}</p>
+        </apex:outputText>
+        <p class="u-mb-60">
+        ※加盟店登録後、PayPayクーポン相談窓口（0800-919-5719）からお電話させていただく場合がございます。<br />
+        ※一部、「PayPayクーポン」対象外となる業種がございます。<br />
+        ※PayPayクーポンの詳細については<a class="u-text-link blank" href="https://paypay.ne.jp/store/offer/coupon/" target="_blank">こちら</a>をご確認ください。
+        </p>
+      </div>
+
+      <div class="u-mt-45 u-mb-45">
+        <hr />
+      </div>
+
+      <div class="c-button__wrapper">
+        <div class="c-row">
+            <div class="c-col-3">
+              <apex:commandLink action="{!mp.back}" value="戻る" styleClass="c-button c-button--border"/>
+            </div>
+            <div class="c-col-9">
+              <apex:commandButton action="{!mp.next}" value="保存して次へ" styleClass="c-button" onclick="if(!slideNext(this)){return};" reRender="body"/>
+            </div>
+        </div>
+      </div>
+  </apex:form>
+</apex:component>

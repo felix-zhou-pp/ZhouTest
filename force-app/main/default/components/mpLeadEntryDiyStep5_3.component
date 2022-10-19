@@ -1,0 +1,225 @@
+<apex:component allowDML="true" id="main" layout="block">
+<apex:attribute name="mp" description="mpLeadFormDiy" type="mpLeadFormDiy" required="true"/>
+<apex:attribute name="input" description="mpFormInputClass" type="mpFormInputClass" required="true"/>
+<apex:attribute name="inputData" description="mpOpportunity__c" type="mpOpportunity__c" required="true"/>
+    <style>
+        .threeColumnGrid > .cell {
+        display: inline-block;
+        width: 100%;
+        vertical-align: text-top;
+        }
+        .twoColumnGrid > .cell {
+          display: flex;
+          justify-content: space-between;
+          width: 100%;
+          vertical-align: text-top;       
+        }
+        .c-accordion__inputDiv {
+        display: none;
+        }
+        .c-accordion__inputDiv:checked + label .ico-ac span:nth-of-type(1) {
+        transform: translateY(4px) rotate(-45deg);
+        background: white;
+        }
+        .c-accordion__inputDiv:checked + label .ico-ac span:nth-of-type(2) {
+        transform: translateY(-4px) rotate(45deg);
+        background: white;
+        }
+        .c-accordion__inputDiv:checked ~ .c-accordion__content {
+        height: auto;
+        opacity: 1;
+        overflow: visible;
+        padding: 10px 20px 20px;
+        background: white;
+        }
+    </style>
+
+<h1 class="c-ttl-page u-mt-0 u-text-center">PayPay加盟店だからできる集客機能</h1>
+<p class="c-ttl-article u-text-center"></p>
+    
+  <apex:form id="form1">
+      
+      <!--<div class="u-mb-20 u-text-bold u-text-center">
+          <p style="display: inline-block;text-align: left;"> 
+              PayPayではお店の情報発信＆集客を目的とした「PayPayマイストア 制限プラン」というサービスを提供しています。<br />
+              こちらのサービスをご利用いただくと、お店の情報や画像を掲載した「ストアページ」を作成することができます。
+              「ストアページ」はPayPayアプリ上で公開されるのでお店のPRができます。（利用料等は発生しません）
+          </p>
+      </div>-->
+      <h1 class="c-ttl-page u-mt-0 u-text-center">PayPayの選べる2つのプラン</h1>
+      <div class="u-mb-20 u-text-bold u-text-center">
+          <p style="display: inline-block;text-align: left;"> 
+              PayPayは、プランによってサービス内容と決済システム利用料が異なります。<br />
+              PayPayクーポンなどの集客ツールが利用できるライトプランへのご加入は、加盟店審査<br />
+              可決後、加盟店管理ツール「PayPay for Business」よりお申込みいただけます。
+          </p>
+      </div>
+      <div class="u-text-left u-mb-30">
+          <apex:image url="{!URLFOR($Resource.mystorePlan)}" alt=" " />
+          <div style="text-align:right;">（税別）</div>
+          <p class="u-mb-60">
+              ※PayPayマイストア ライトプラン（1,980円/店舗）を契約し、加盟店店舗（実店舗で使用している店舗）すべてでPayPayマイストア ライトプランを利用の場合、決済システム利用料が1.60％となります。<br />
+              <b>＊「PayPayマイストア ライトプラン」へ加入されない方には、一部機能を制限した「PayPayマイストア 制限プラン」（無料）をご用意しております。</b>
+          </p>
+      </div>
+      <div class="c-box  u-mb-10" style="border: none;background: #D3D3D3">
+          <div class="c-box__inner">
+              <p class="u-text-center u-text-bold" style="font-size:24px;">
+                  加盟店審査可決後の流れ
+              </p>
+          </div>
+      </div>
+      <p class="u-text-bold" style="font-size:20px;text-align:center;">
+          「PayPay for Business」にログインしてマイストアに店舗情報を登録しよう
+       </p>
+      <br/>
+
+    <div class="u-text-center u-mb-30">
+        <apex:image url="{!URLFOR($Resource.mpLeadDiyAssets, '/assets/img/mystore/img_mystore_01.png')}" alt=" " />
+        <!--
+        <apex:image url="{!URLFOR($Resource.mpLeadDiyAssets, '/assets/img/mystore/img_mystore_banner.png')}" alt=" " />
+        -->
+    </div>
+      <!--<div class="u-mb-30">
+          <div class="c-box has-icon green">
+              <div class="c-box__inner">
+                  <h4 class="c-box__iconttl"><span>「ストアページ」は、PayPay加盟店審査完了後、加盟店向け決済管理ツール「PayPay for Business」から作成いただけます。<br/>
+                      また、一部PayPayアプリのMapに表示されない業種、及び店舗(タクシー、当社が指定する用途・移動販売など)は、「ストアページ」の作成ができません。</span></h4>
+              </div>
+          </div>
+      </div>-->
+      <br/>
+
+      <div class="c-form__wrapper">
+          <div class="c-form__ttl">
+              <h3 class="c-ttl-section">「PayPayマイストア」に興味がある方はチェックを入れてください</h3>
+              <div class="c-label blue">任意</div>
+          </div>
+          <div class="c-form__input {!IF(input.data['PayPayMystoreHope__c'].hasError, 'error', '')}">
+              <label class="c-check__wrap">
+                  <apex:inputCheckbox value="{!input.data['PayPayMystoreHope__c'].val}" styleClass="c-check" required="true"/>                                                                                                                            
+                  <span class="c-check__v"></span>
+                  <span>PayPayマイストアに興味がある</span>
+              </label>
+          </div>
+          <p class="u-mb-30">
+              ※このチェックはアンケートのため、ここでチェックを入れてもお申込みとはなりません。<br />
+          </p>
+      </div>
+
+          <div class="u-mt-45 u-mb-30">
+            <hr />
+          </div>
+
+      <div class="u-mb-20">
+          <p class="u-text-bold " style="display: inline-block;text-align: left;"> 
+              さらに、「PayPayマイストア ライトプラン」（有料）にお申込みいただくと、PayPayクーポンを発行することができるようになります。
+          </p>
+          <p style="display: inline-block;text-align: left;"> 
+              ※現在PayPayクーポントライアルキャンペーン実施中
+          </p>
+      </div>      
+
+      <p class="u-text-bold" style="font-size:20px;text-align:center;">
+          「PayPayクーポン」で集客効果を最大化
+      </p>
+      <p class="u-mb-60">
+          ※ライトプランへのご加入が必要です。
+      </p>
+          
+      <div class="threeColumnGrid">
+          <div class="cell">
+              <apex:image url="{!URLFOR($Resource.mpLeadDiyAssets, '/assets/img/mystore/img_about_01.png')}" style="width:32%;"/>
+              <apex:image url="{!URLFOR($Resource.mpLeadDiyAssets, '/assets/img/mystore/img_about_02.png')}" style="width:32%;"/>
+             <apex:image url="{!URLFOR($Resource.mpLeadDiyAssets, '/assets/img/mystore/img_about_03.png')}" style="width:32%;"/>
+          </div>
+      </div>
+                  
+      <div>
+         <p class="u-text-center">お店の目的に合わせて独自のクーポンをPayPayアプリ上で配信可能</p><br/>
+          
+      <div class="c-accordion">
+        <input type="checkbox" id="accordion-01" class="c-accordion__input" />
+        <label style="background: #FFF7E5" for="accordion-01">PayPayクーポンの驚きの効果はココをクリック！<span class="ico-ac"><span></span><span></span></span></label>
+        <div class="c-accordion__content">
+            <div class="c-box has-icon yellow u-mb-20">
+                <p class="u-ml-15 u-text-bold u-text-center" style="font-size:15px;">
+                    実際にさまざまな業種で売り上げアップを実感！
+                </p><br/>
+                <div class="c-box__inner u-text-center">
+                    <div class="c-row">
+                        <div class="c-col-6 c-col-md-12">
+                            <apex:image url="{!URLFOR($Resource.mpLeadDiyAssets, '/assets/img/mystore/img_column_04.png')}" alt="&nbsp;" width="280" /> 
+                        </div>
+                        <div class="c-col-6 c-col-md-12">
+                            <apex:image url="{!URLFOR($Resource.mpLeadDiyAssets, '/assets/img/mystore/img_column_05.png')}" alt="&nbsp;" width="280" /> 
+                        </div>
+                        <div class="c-col-md-12">
+                            <apex:image url="{!URLFOR($Resource.mpLeadDiyAssets, '/assets/img/mystore/img_column_06.png')}" alt="&nbsp;" width="280" /> 
+                        </div>
+                    </div>
+                </div>
+                
+                <ul style="display: inline-block;text-align: left;font-size:12px;">
+                    <li>※実施前:2020年10月～11月平均</li>
+                    <li>※PayPayクーポン実施期間:2020年11月～1月の内、各社設定の期間</li>
+                </ul>
+            </div>
+            <p class="u-ml-15 u-text-bold u-text-center" style="font-size:15px;">
+                トライアルキャンペーンでお得に始められる！
+            </p>
+            <div class="c-row">
+                <div class="c-col-6">
+                    <apex:image url="{!URLFOR($Resource.mpLeadDiyAssets, '/assets/img/mystore/img_trial_01.png')}" alt="&nbsp;" style="width:100%;" />
+                </div>
+                <div class="c-col-6">
+                    <apex:image url="{!URLFOR($Resource.mpLeadDiyAssets, '/assets/img/mystore/img_trial_03.png')}" alt="&nbsp;" style="width:100%;" /> 
+                </div>
+            </div>
+            <br/>
+            <p style="text-align: left;font-size:12px;">
+                ※PayPayマイストア「トライアルキャンペーン」により、初期費用を無料にいたします。また、契約した月とその翌月の月額利用料金を無料にいたします。
+            </p>
+        </div>
+      </div><br/>
+      </div>
+      
+      <div class="c-form__wrapper">
+          <div class="c-form__ttl">
+              <h3 class="c-ttl-section">「PayPayクーポン」に興味がある方はチェックを入れてください</h3>
+              <div class="c-label blue">任意</div>
+          </div>
+
+          <div class="c-form__input {!IF(input.data['PayPayPlcHope__c'].hasError, 'error', '')}">
+              <label class="c-check__wrap">
+                  <apex:inputCheckbox value="{!input.data['PayPayPlcHope__c'].val}" styleClass="c-check" required="true"/>    
+                  <span class="c-check__v"></span>
+                  <span>PayPayクーポンに興味がある</span>
+              </label>
+          </div>
+          <p class="u-mb-60">
+              ※このチェックはアンケートのため、ここでチェックを入れてもお申込みとはなりません。<br />
+              ※加盟店登録後、PayPayクーポン相談窓口（0800-919-5719）からお電話させていただく場合がございます。<br />
+              ※一部、「PayPayクーポン」対象外となる業種がございます。<br />
+              ※PayPayクーポンの詳細については<a class="u-text-link blank" href="https://paypay.ne.jp/store/offer/coupon/" target="_blank">こちら</a>をご確認ください。
+          </p>
+      </div>
+      
+          <div class="u-mt-45 u-mb-20">
+            <hr />
+          </div>
+
+      <div class="c-button__wrapper">
+        <div class="c-row">
+            <div class="c-col-3">
+              <apex:commandLink action="{!mp.back}" value="戻る" styleClass="c-button c-button--border"  onclick="slideBack();" reRender="body" immediate="true" />
+            </div>
+            <div class="c-col-9">
+              <apex:commandButton action="{!mp.next}" value="保存して次へ" styleClass="c-button" onclick="if(!slideNext(this)){return};"/>
+            </div>
+        </div>
+      </div>
+
+    </apex:form>
+
+</apex:component>

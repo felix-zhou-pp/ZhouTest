@@ -1,0 +1,149 @@
+<apex:component allowDML="true" id="main" layout="block">
+<apex:attribute name="mp" description="mpLeadFormDiy" type="mpLeadFormDiy" required="true"/>
+<script>
+function selectShop() {
+    switch ($('input[name="shopExist"]:checked').val()) {
+        case '1':
+            $(".shop-exist").hide();
+            break;
+        case '2':
+            $(".shop-exist").show();
+            break;
+    }
+}
+</script>
+
+<h1 class="c-ttl-page u-mt-0 u-text-center">複数店舗をお持ちの方へ</h1>
+<p class="c-ttl-article u-text-center"></p>
+
+    <div class="u-text-center u-mb-30">
+      <apex:image url="{!URLFOR($Resource.mpLeadDiyAssets, '/assets/img/common/illust/illust_shop.svg')}" alt="&nbsp;" /> 
+    </div>
+    
+    <apex:outputText rendered="{!mp.ShopDetailList.size <= 1}">
+      <div class="c-form__wrapper u-mb-40">
+        <div class="c-form__ttl">
+          <h3 class="c-ttl-section">代表店舗以外の店舗（支店）をお持ちですか？</h3>
+        </div>
+        <div class="c-form__input">
+          <label class="c-radio__wrap">
+            <input class="c-radio" type="radio" name="shopExist" value="1" onchange="selectShop();" checked="checked"/>
+            <span class="c-radio__v"></span>
+            <span>いいえ、支店を持っていません</span>
+          </label>
+          <label class="c-radio__wrap">
+            <input class="c-radio" type="radio" name="shopExist" value="2" onchange="selectShop();" />
+            <span class="c-radio__v"></span>
+            <span>はい、支店を持っています</span>
+          </label>
+        </div>
+      </div>
+    </apex:outputText>
+
+  <apex:form id="form1">
+    <div class="shop-exist" style="{!IF(mp.ShopDetailList.size <= 1, 'display:none;' , '')}">
+        <div class="u-mb-30">
+          <div class="c-box has-icon green">
+            <div class="c-box__inner">
+              <h4 class="c-box__iconttl"><span>代表店舗以外の店舗（支店）をお持ちの場合、それらの店舗も同時にお申込みいただけます。</span></h4>
+              <ul>
+                <li style="list-style:disc">支店は審査完了後に後から追加することも可能です。</li>
+                <li style="list-style:disc">このフォームで登録できる支店数は最大で{!mp.MaxRealShopCount}店舗までとなります。</li>
+                <li style="list-style:disc">QRコード等が入ったスタートガイドは代表店舗を優先して発送いたします。支店への発送時期はそれ以降となります。</li>
+                <li style="list-style:disc">法人名や屋号について<img id="AboutBO" src="https://image.paypay.ne.jp/mail/sales/web-diy/sales/storename_ex_2022.png" width="440" height="110" alt="法人名や屋号について説明"/></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="u-mb-30">
+          <div class="c-box has-icon yellow">
+            <div class="c-box__inner">
+              <h4 class="c-box__iconttl"><span>事業主や屋号が異なる店舗は、支店として追加することができません。<br />本申込み完了後に別途新規でお申込みください。</span></h4>
+            </div>
+          </div>
+        </div>
+        
+        <apex:outputText rendered="{!mp.ShopDetailList.size > 1}">
+            <div class="u-mt-45 u-mb-45">
+                <hr />
+            </div>
+
+            <apex:variable var="ShopCount" value="{!0}" />
+            <apex:repeat value="{!mp.ShopDetailList}" var="ShopDetail">
+               <apex:outputText rendered="{!ShopDetail.isShop}">
+                <apex:variable var="ShopCount" value="{!ShopCount + 1}" />
+                <div class="u-mb-30">
+                    <div class="c-box has-icon blue" style="border-color:#aaa;background:#FFF;">
+                        <div class="c-box__inner">
+                            <div class="c-form__ttl u-mb-15">
+                                <h3 class="c-ttl-article">支店情報 {!ShopCount}</h3>
+                                <div class="c-label border-red" style="border:none;">
+                                    <button class="c-label border-red" onclick="this.nextElementSibling.style.display='block';this.style.display='none';return false;">削除</button>
+                                    <div style="display:none;">
+                                        <div style="color:#000;text-align:right;">
+                                            この支店を削除します。よろしいでしょうか？<br />
+                                           <apex:commandLink action="{!mp.deleteShops}" value="削除する" styleClass="u-mt-5 c-label border-red" onclick="simpleNext(this);this.style.display='none';" reRender="body" immediate="true" >
+                                               <apex:param name="DeleteShopId" value="{!ShopDetail.shop.Id}" assignTo="{!mp.DeleteShopId}"/>
+                                           </apex:commandLink>
+                                       </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="c-row">
+                                <div class="c-col-6">
+                                    <div class="c-form__input confirm">
+                                        <p class="u-text-size-s u-text-sub">店舗名</p>
+                                        <p>{!ShopDetail.shop.Name}</p>
+                                    </div>
+                                </div>
+                                <div class="c-col-6">
+                                    <div class="c-form__input confirm">
+                                        <p class="u-text-size-s u-text-sub">店舗名（フリガナ）</p>
+                                        <p>{!ShopDetail.shop.NameKane}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="c-form__input confirm">
+                                <p class="u-text-size-s u-text-sub">住所</p>
+                                <p class="u-mb-5">〒{!ShopDetail.shop.PostalCode}<br />
+                                    {!ShopDetail.shop.Prefectures}&nbsp;{!ShopDetail.shop.City}&nbsp;{!ShopDetail.shop.Town}&nbsp;{!ShopDetail.shop.Street}<br />{!ShopDetail.shop.Building}
+                                </p>
+                                <p>{!ShopDetail.shop.CityKana}&nbsp;{!ShopDetail.shop.TownKana}<br />{!ShopDetail.shop.BuildingKana}</p>
+                            </div>
+                            <div class="c-form__input confirm">
+                                <p class="u-text-size-s u-text-sub">電話番号</p>
+                                <p><apex:outputText rendered="{!ShopDetail.shop.Tel == null}">（未入力）</apex:outputText>{!ShopDetail.shop.Tel}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </apex:outputText>
+            </apex:repeat>
+        </apex:outputText>
+    
+        <apex:outputText rendered="{! !mp.IsRealShopMax}">
+          <div class="c-button__wrapper">
+              <apex:commandButton action="{!mp.goShop}" value="{!IF(mp.ShopDetailList.size > 1, 'さらに', '')}支店の登録を行う" styleClass="c-button {!IF(mp.ShopDetailList.size > 1, 'c-button--border', '')}" onclick="if(!slideNext(this)){return};" reRender="body"/>
+          </div>
+        </apex:outputText>
+        
+        <p class="u-text-center">※支店の登録が完了したら次へ進んでください。</p>
+    </div>
+  </apex:form>
+    <div class="u-mt-45 u-mb-45">
+        <hr />
+    </div>
+
+  <apex:form id="form2">
+      <div class="c-button__wrapper">
+        <div class="c-row">
+            <div class="c-col-3">
+              <apex:commandLink action="{!mp.back}" value="戻る" styleClass="c-button c-button--border"  onclick="slideBack();" reRender="body" immediate="true" />
+            </div>
+            <div class="c-col-9">
+              <apex:commandButton action="{!mp.goNext}" value="次へ" styleClass="c-button" onclick="if(!slideNext(this)){return};" reRender="body"/>
+            </div>
+        </div>
+      </div>
+  </apex:form>
+</apex:component>

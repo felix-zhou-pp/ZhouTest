@@ -1,0 +1,144 @@
+<apex:component allowDML="true" id="main" layout="block">
+<apex:attribute name="mp" description="mpLeadFormDiy" type="mpLeadFormDiy" required="true"/>
+<apex:attribute name="input" description="mpFormInputClass" type="mpFormInputClass" required="true"/>
+
+<script>
+$(function() {
+    //屋号
+    $.fn.autoKana('input[id$=":FormStoreName"]', 'input[id$=":FormStoreKanaName"]', {
+        katakana : true
+    });
+    //店舗名
+    $.fn.autoKana('input[id$=":ShopName"]', 'input[id$=":ShopNameKana"]', {
+        katakana : true
+    });
+});
+</script>
+
+  <h1 class="c-ttl-page u-mt-0 u-text-center">屋号および店舗の情報を入力してください</h1>
+  <p class="c-ttl-article u-text-center"></p>
+    <div class="u-mb-20">
+      <div class="c-box has-icon green">
+        <div class="c-box__inner">
+          <h4 class="c-box__iconttl"><span>同じ屋号で複数店舗をお持ちの場合は、代表となる店舗の情報を入力してください。 </span></h4>
+          <h4 class="c-box__iconttl"><span>屋号には店舗名を含めないでください（店舗名の例：丸の内店、〇〇駅前店、１号店、など）</span></h4>
+          <h4 class="c-box__iconttl"><span>法人名や屋号について<br/><br/><img id="AboutBO" src="https://image.paypay.ne.jp/mail/sales/web-diy/sales/storename_ex_2022.png
+" width="440" height="110" alt="法人名や屋号について説明" /></span></h4>
+        </div>
+      </div>
+    </div>
+
+    <apex:form id="form1">
+      <div class="c-form__wrapper">
+        <div class="c-form__ttl">
+          <h3 class="c-ttl-section">屋号</h3>
+          <div class="c-label red">必須</div>
+        </div>
+        <div class="c-form__input {!IF(input.data['FormStoreName__c'].hasError, 'error', '')}">
+            <apex:inputText value="{! input.data['FormStoreName__c'].val}" styleclass="c-form" id="FormStoreName" html-placeholder="入力例： PayPayコーヒー"
+                                    maxlength="{! input.data['FormStoreName__c'].length}" required="True"/>
+        </div>
+        <p class="u-text-size-s u-text-sub">実際にお客様に掲示している屋号名をご入力ください。店舗名を含めないでください。<br/>（店舗名の例：丸の内店、〇〇駅前店、１号店、など）</p>
+        <apex:outputText rendered="{!input.data['FormStoreName__c'].hasError}">
+          <p class="u-text-size-s u-text-error u-mb-5">{!input.data['FormStoreName__c'].error}</p>
+        </apex:outputText>
+      </div>
+
+      <div class="c-form__wrapper">
+        <div class="c-form__ttl">
+          <h3 class="c-ttl-section">屋号（フリガナ）</h3>
+          <div class="c-label red">必須</div>
+        </div>
+        <div class="c-form__input {!IF(input.data['FormStoreKanaName__c'].hasError, 'error', '')}">
+            <apex:inputText value="{! input.data['FormStoreKanaName__c'].val}" styleclass="c-form" id="FormStoreKanaName" html-placeholder="入力例： ペイペイコーヒー"
+                                maxlength="{! input.data['FormStoreKanaName__c'].length}" required="True"/>
+        </div>
+        <apex:outputText rendered="{!input.data['FormStoreKanaName__c'].hasError}">
+          <p class="u-text-size-s u-text-error u-mb-5">{!input.data['FormStoreKanaName__c'].error}</p>
+        </apex:outputText>        
+      </div>
+
+      <div class="u-mt-45 u-mb-45">
+        <hr />
+      </div>
+
+      <div class="c-form__wrapper">
+        <div class="c-form__ttl">
+          <h3 class="c-ttl-section">店舗名</h3>
+          <div class="c-label blue">任意</div>
+        </div>
+        <div class="c-form__input {!IF(input.data['ShopName__c'].hasError, 'error', '')}">
+            <apex:inputText value="{! input.data['ShopName__c'].val}" styleclass="c-form" id="ShopName" html-placeholder="入力例：１号店"
+                                maxlength="{! input.data['ShopName__c'].length}" />
+        </div>
+          <p class="u-text-size-s u-text-sub">店舗名の例：「日比谷店」「1号店」「〇〇駅前店」など</p>
+        <apex:outputText rendered="{!input.data['ShopName__c'].hasError}">
+          <p class="u-text-size-s u-text-error u-mb-5">{!input.data['ShopName__c'].error}</p>
+        </apex:outputText>
+      </div>
+
+      <div class="c-form__wrapper">
+        <div class="c-form__ttl">
+          <h3 class="c-ttl-section">店舗名（フリガナ）</h3>
+          <div class="c-label blue">任意</div>
+        </div>
+          
+        <div class="c-form__input {!IF(input.data['ShopNameKana__c'].hasError, 'error', '')}">
+            <apex:inputText value="{! input.data['ShopNameKana__c'].val}" styleclass="c-form" id="ShopNameKana" html-placeholder="入力例： イチゴウテン" 
+                            maxlength="{! input.data['ShopNameKana__c'].length}"/>
+        </div>
+        <apex:outputText rendered="{!input.data['ShopNameKana__c'].hasError}">
+          <p class="u-text-size-s u-text-error u-mb-5">{!input.data['ShopNameKana__c'].error}</p>
+        </apex:outputText>        
+      </div>
+
+        <div class="c-form__wrapper">
+            <div class="c-form__ttl">
+              <h3 class="c-ttl-section">店舗電話番号</h3>
+              <div class="c-label red">必須</div>
+            </div>
+            <div class="c-form__input {!IF(input.data['StorePhoneNumber__c'].hasError, 'error', '')}">
+                <apex:inputText value="{! input.data['StorePhoneNumber__c'].val}" styleclass="c-form hankakunum" id="StorePhoneNumber"
+                    maxlength="{! input.data['StorePhoneNumber__c'].length}"
+                    html-placeholder="入力例： 09012345678" required="True"/>
+            </div>
+        </div>
+        <apex:outputText rendered="{!input.data['StorePhoneNumber__c'].hasError}">
+          <p class="u-text-size-s u-text-error u-mb-5">{!input.data['StorePhoneNumber__c'].error}</p>
+        </apex:outputText>
+
+      <div class="u-mt-45 u-mb-45">
+        <hr />
+      </div>
+
+      <div class="c-form__wrapper">
+        <div class="c-form__ttl">
+          <h3 class="c-ttl-section">ホームページ</h3>
+          <div class="c-label blue">任意</div>
+        </div>
+        <div class="c-form__input {!IF(input.data['URL__c'].hasError, 'error', '')}">
+            <apex:inputText value="{! input.data['URL__c'].val}" styleclass="c-form" id="URL" html-placeholder="入力例： https://paypay.ne.jp" 
+                maxlength="{! input.data['URL__c'].length}"/>
+        </div>
+        <p class="u-text-size-s u-text-sub">httpから入力してください。ホームページがある場合は必ずご入力をお願いいたします。</p>
+        <apex:outputText rendered="{!input.data['URL__c'].hasError}">
+          <p class="u-text-size-s u-text-error u-mb-5">{!input.data['URL__c'].error}</p>
+        </apex:outputText>
+      </div>
+
+          <div class="u-mt-45 u-mb-45">
+            <hr />
+          </div>
+
+          <div class="c-button__wrapper">
+            <div class="c-row">
+                <div class="c-col-3">
+                  <apex:commandLink action="{!mp.back}" value="戻る" styleClass="c-button c-button--border"  onclick="slideBack();" reRender="body" immediate="true" />
+                </div>
+                <div class="c-col-9">
+                  <apex:commandButton action="{!mp.next}" value="保存して次へ" styleClass="c-button" onclick="if(!slideNext(this)){return};" reRender="body"/>
+                </div>
+            </div>
+          </div>
+    </apex:form>
+</apex:component>
